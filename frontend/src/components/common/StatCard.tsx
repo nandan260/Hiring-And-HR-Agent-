@@ -8,12 +8,12 @@ interface StatCardProps {
   accent?: "indigo" | "blue" | "emerald" | "amber" | "purple";
 }
 
-const ACCENT_BG = {
-  indigo: "bg-indigo-50 text-indigo-600",
-  blue: "bg-blue-50 text-blue-600",
-  emerald: "bg-emerald-50 text-emerald-600",
-  amber: "bg-amber-50 text-amber-600",
-  purple: "bg-purple-50 text-purple-600",
+const ACCENT_STYLE = {
+  indigo: "bg-[var(--field)] text-[var(--ink)] border-[var(--line)]",
+  blue: "bg-[var(--field)] text-[var(--ink-2)] border-[var(--line)]",
+  emerald: "bg-[var(--pass-soft)] text-[var(--pass)] border-transparent",
+  amber: "bg-[var(--esc-soft)] text-[var(--esc)] border-transparent",
+  purple: "bg-[var(--field)] text-[var(--ink-2)] border-[var(--line)]",
 };
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -24,16 +24,18 @@ export const StatCard: React.FC<StatCardProps> = ({
   accent = "indigo",
 }) => {
   return (
-    <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-xs transition hover:border-indigo-200 hover:shadow-sm">
+    <div className="hf-card transition-colors hover:border-[var(--muted)]">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</p>
-          <p className="mt-2 font-display text-2xl font-bold tracking-tight text-slate-900">
+        <div className="min-w-0">
+          <p className="text-[12.5px] font-medium text-[var(--muted)]">{label}</p>
+          <p className="mt-1.5 text-[28px] font-bold leading-tight tracking-tight text-[var(--ink)] tabular-nums">
             {value}
           </p>
-          {subtext && <p className="mt-1 text-xs text-slate-500">{subtext}</p>}
+          {subtext && <p className="mt-1 text-xs text-[var(--muted)]">{subtext}</p>}
         </div>
-        <div className={`rounded-xl p-2.5 ${ACCENT_BG[accent]}`}>{icon}</div>
+        <div className={`shrink-0 rounded-xl border p-2.5 ${ACCENT_STYLE[accent]}`}>
+          {icon}
+        </div>
       </div>
     </div>
   );

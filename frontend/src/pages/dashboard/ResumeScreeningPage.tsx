@@ -12,7 +12,7 @@ export const ResumeScreeningPage: React.FC = () => {
   const [preferredSkills, setPreferredSkills] = useState("LangGraph, Docker");
   const [minYears, setMinYears] = useState(4);
   const [blindMode, setBlindMode] = useState(
-    workspace?.settings?.blind_screening_mode ?? true
+    Boolean(workspace?.settings.blind_screening_mode)
   );
   const [resumeText, setResumeText] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -78,170 +78,156 @@ export const ResumeScreeningPage: React.FC = () => {
   };
 
   const evaluations =
-    ((result?.structured_output?.candidate_evaluations as Record<string, unknown>[]) || []);
+    (result?.structured_output?.candidate_evaluations as Record<string, unknown>[]) || [];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="hf-page-head mb-0">
         <div>
-          <h1 className="font-display text-2xl font-bold text-slate-900">Resume Screening</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="hf-h1">Resume Screening</h1>
+          <p className="hf-lede">
             Upload a candidate resume (PDF/DOCX/TXT) or paste CV text to score skills, experience,
-            and rubric fit via the Recruitment Screening workflow.
+            and job fit against structured requirements.
           </p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          Protected Attributes Excluded
+        <span className="hf-chip hf-chip-plain">
+          <FileSearch className="h-3.5 w-3.5" />
+          Internal Workflow: recruitment-screening
         </span>
       </div>
 
-      <form
-        onSubmit={handleScreen}
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs"
-      >
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="text-xs font-semibold text-slate-700">Target Role Title</label>
+      <form onSubmit={handleScreen} className="hf-card space-y-5">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="hf-field lg:col-span-2">
+            <label>Target Role</label>
             <input
               type="text"
-              required
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm outline-none focus:border-indigo-400"
+              className="hf-input"
+              required
             />
           </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-700">
-              Minimum Experience (Years)
-            </label>
+          <div className="hf-field">
+            <label>Minimum Years Experience</label>
             <input
               type="number"
               min={0}
               max={30}
               value={minYears}
               onChange={(e) => setMinYears(Number(e.target.value))}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm outline-none focus:border-indigo-400"
+              className="hf-input"
             />
           </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-700">
-              Required Skills (comma-separated)
-            </label>
-            <input
-              type="text"
-              value={requiredSkills}
-              onChange={(e) => setRequiredSkills(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm outline-none focus:border-indigo-400"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-700">
-              Preferred Skills (comma-separated)
-            </label>
-            <input
-              type="text"
-              value={preferredSkills}
-              onChange={(e) => setPreferredSkills(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm outline-none focus:border-indigo-400"
-            />
-          </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="text-xs font-semibold text-slate-700">
-              Upload Resume File (PDF, DOCX, TXT, MD — optional)
-            </label>
-            <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-xs text-slate-600 hover:border-indigo-400">
-              <Upload className="h-4 w-4 text-indigo-600" />
-              <span className="truncate">
-                {resumeFile ? resumeFile.name : "Choose resume file to upload & screen..."}
+          <div className="flex items-end">
+            <label className="flex w-full cursor-pointer items-center justify-between rounded-[var(--r-field)] border border-[var(--line)] bg-[var(--field)] px-3.5 py-2.5 text-xs font-medium text-[var(--ink)]">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-[var(--pass)]" />
+                Blind Screening
               </span>
-              <input
-                type="file"
-                accept=".pdf,.docx,.txt,.md"
-                className="hidden"
-                onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-              />
-            </label>
-          </div>
-
-          <div className="flex items-end pb-2">
-            <label className="inline-flex cursor-pointer items-center gap-2.5 text-xs font-semibold text-slate-800">
               <input
                 type="checkbox"
                 checked={blindMode}
                 onChange={(e) => setBlindMode(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+                className="accent-[var(--pass)]"
               />
-              Enable Blind Screening Mode (Redact Name, Email &amp; Phone in Report)
             </label>
           </div>
         </div>
 
-        <div>
-          <label className="text-xs font-semibold text-slate-700">
-            Or Paste Inline Resume Text (Optional — leave blank to screen existing candidate pool)
-          </label>
-          <textarea
-            rows={4}
-            value={resumeText}
-            onChange={(e) => setResumeText(e.target.value)}
-            placeholder="Jane Doe — 6 years backend engineering experience with Python, FastAPI, PostgreSQL, Docker, and LangGraph..."
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm outline-none focus:border-indigo-400"
-          />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="hf-field">
+            <label>Required Skills (comma-separated)</label>
+            <input
+              type="text"
+              value={requiredSkills}
+              onChange={(e) => setRequiredSkills(e.target.value)}
+              className="hf-input"
+            />
+          </div>
+          <div className="hf-field">
+            <label>Preferred Skills (comma-separated)</label>
+            <input
+              type="text"
+              value={preferredSkills}
+              onChange={(e) => setPreferredSkills(e.target.value)}
+              className="hf-input"
+            />
+          </div>
         </div>
 
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={running}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-indigo-500 hover:to-blue-500 disabled:opacity-60"
-          >
-            {running ? <FileSearch className="h-4 w-4 animate-pulse" /> : <Play className="h-4 w-4" />}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="hf-field">
+            <label>Upload Resume File (PDF, DOCX, TXT, MD &mdash; optional)</label>
+            <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--line)] bg-[var(--field)] p-6 text-center transition hover:border-[var(--muted)] hover:bg-[var(--field-hover)]">
+              <Upload className="h-5 w-5 text-[var(--ink)]" />
+              <span className="mt-2 text-xs font-semibold text-[var(--ink)]">
+                {resumeFile ? resumeFile.name : "Choose resume file to upload"}
+              </span>
+              <span className="mt-0.5 text-[11px] text-[var(--muted)]">
+                Automatically parsed, chunked &amp; indexed with tenant RLS isolation
+              </span>
+              <input
+                type="file"
+                accept=".pdf,.docx,.txt,.md,.json,.csv"
+                onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          <div className="hf-field">
+            <label>Or Paste Resume Text Directly</label>
+            <textarea
+              rows={5}
+              value={resumeText}
+              onChange={(e) => setResumeText(e.target.value)}
+              placeholder="Jane Doe — 6 years backend engineering experience with Python, FastAPI, PostgreSQL, Docker, and LangGraph..."
+              className="hf-input min-h-[124px]"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--line)] pt-4">
+          <span className="text-xs text-[var(--muted)]">
+            If no file or text is provided, HireFlow AI evaluates all matching candidates already in
+            your tenant pool.
+          </span>
+          <button type="submit" disabled={running} className="hf-btn hf-btn-primary">
+            <Play className="h-3.5 w-3.5" />
             {running ? "Screening Resumes..." : "Run Resume Screening"}
           </button>
         </div>
       </form>
 
       {evaluations.length > 0 && (
-        <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-          <h2 className="font-display text-base font-bold text-slate-900">
-            Structured Screening Scorecard ({evaluations.length})
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2">
+        <div className="hf-card space-y-3">
+          <h2 className="hf-h2 mb-0">Candidate Screening Scorecard ({evaluations.length})</h2>
+          <div className="grid gap-3 md:grid-cols-2">
             {evaluations.map((ev, idx) => (
-              <div
-                key={idx}
-                className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-xs"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-slate-900">
-                    {String(ev.candidate_label || `Candidate #${idx + 1}`)}
-                  </span>
-                  <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 font-mono font-bold text-indigo-800">
-                    {String(ev.match_score ?? 0)}% fit
-                  </span>
-                </div>
-                <p className="mt-1 font-medium text-slate-700">{String(ev.recommendation || "")}</p>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {((ev.matched_required_skills as string[]) || []).map((sk) => (
-                    <span
-                      key={sk}
-                      className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800"
-                    >
-                      + {sk}
+              <div key={idx} className="hf-claim supported">
+                <div className="bar" />
+                <div className="min-w-0 pr-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-bold text-[var(--ink)]">
+                      {String(ev.candidate_name || `Candidate ${idx + 1}`)}
                     </span>
-                  ))}
-                  {((ev.missing_skills as string[]) || []).map((sk) => (
-                    <span
-                      key={sk}
-                      className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-800"
-                    >
-                      - {sk}
+                    <span className="hf-chip hf-chip-pass font-mono">
+                      Score: {String(ev.match_score ?? 0)}%
                     </span>
-                  ))}
+                  </div>
+                  <p className="mt-1.5 text-xs leading-relaxed text-[var(--ink-2)]">
+                    {String(ev.summary || "")}
+                  </p>
+                  {Array.isArray(ev.matched_skills) && ev.matched_skills.length > 0 && (
+                    <div className="mt-2.5 flex flex-wrap gap-1.5">
+                      {(ev.matched_skills as string[]).map((s) => (
+                        <span key={s} className="hf-chip hf-chip-plain">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

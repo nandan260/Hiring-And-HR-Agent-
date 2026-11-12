@@ -13,12 +13,15 @@ export const ExecutionResultPanel: React.FC<{
 
   if (errorMsg) {
     return (
-      <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-900">
-        <div className="flex items-start gap-2.5">
-          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
-          <div>
-            <div className="font-semibold">Execution Blocked / Error</div>
-            <p className="mt-1 leading-relaxed">{errorMsg}</p>
+      <div className="hf-claim contradicted mt-4">
+        <div className="bar" />
+        <div className="pr-2">
+          <div className="flex items-start gap-2.5 text-sm">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--block)]" />
+            <div>
+              <div className="font-semibold text-[var(--ink)]">Execution Blocked / Error</div>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--ink-2)]">{errorMsg}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -29,140 +32,188 @@ export const ExecutionResultPanel: React.FC<{
 
   const isDeclined =
     result.execution_status === "rejected" || result.execution_status === "blocked";
+  const isPaused = result.execution_status === "paused_hitl";
+
+  const statusChipClass = isDeclined
+    ? "hf-chip hf-chip-block"
+    : isPaused
+      ? "hf-chip hf-chip-escalate"
+      : "hf-chip hf-chip-pass";
+
+  const claimStateClass = isDeclined
+    ? "contradicted"
+    : isPaused
+      ? "escalated"
+      : "supported";
+
+  const totalTokens = result.input_tokens + result.output_tokens;
+  const completedSteps = result.trace_steps.length;
 
   return (
-    <div
-      className={`rounded-2xl border p-5 ${
-        isDeclined
-          ? "border-rose-200 bg-rose-50/70"
-          : result.execution_status === "paused_hitl"
-            ? "border-amber-200 bg-amber-50/40"
-            : "border-slate-200 bg-white"
-      }`}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/70 pb-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700">
-            <Sparkles className="h-3 w-3" />
-            {title || result.routed_workflow_name}
-          </span>
-          <span
-            className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-              result.execution_status === "completed"
-                ? "bg-emerald-50 text-emerald-700"
-                : result.execution_status === "paused_hitl"
-                  ? "bg-amber-100 text-amber-800"
-                  : "bg-rose-100 text-rose-800"
-            }`}
-          >
-            {result.execution_status}
-          </span>
-          <span className="font-mono text-[11px] text-slate-500">
-            {result.classifier_result}
-          </span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] text-slate-500">
-          {result.intent_analysis?.risk_level && (
-            <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
-              risk:{result.intent_analysis.risk_level}
-            </span>
-          )}
-          <span className="inline-flex items-center gap-1">
-            <Cpu className="h-3 w-3" />
-            {result.model_used}
-          </span>
-          <span>
-            {result.input_tokens + result.output_tokens} tok ({result.latency_ms}ms)
-            {typeof result.tokens_saved === "number" && result.tokens_saved > 0
-              ? ` • -${result.tokens_saved} (${result.reduction_percent ?? 0}% saved)`
-              : ""}
-          </span>
-        </div>
-      </div>
-
-      {((result.guardrail_flags && result.guardrail_flags.length > 0) ||
-        (result.optimization_methods_used && result.optimization_methods_used.length > 0)) && (
-        <div className="mt-2.5 flex flex-wrap gap-1.5">
-          {result.guardrail_flags?.map((flag) => (
-            <span
-              key={flag}
-              className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800"
-            >
-              guardrail: {flag}
-            </span>
-          ))}
-          {result.optimization_methods_used?.map((m) => (
-            <span
-              key={m}
-              className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-700"
-            >
-              {m}
-            </span>
-          ))}
-        </div>
-      )}
-
-      <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
-        {result.final_response_text}
-      </div>
-
-      {result.citations.length > 0 && (
-        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-            <FileCheck className="h-3.5 w-3.5 text-emerald-600" />
-            Grounded Citations
+    <div className="space-y-4">
+      <div className="hf-verdict">
+        <div>
+          <div className="hf-score">
+            {totalTokens > 0 ? totalTokens : `${result.latency_ms}ms`}
+            <small>
+              {totalTokens > 0 ? `${result.latency_ms}ms latency` : "execution timing"}
+            </small>
           </div>
-          <ul className="mt-1.5 space-y-1 text-xs text-slate-700">
-            {result.citations.map((cite, idx) => (
-              <li key={idx}>• {cite}</li>
-            ))}
-          </ul>
         </div>
-      )}
 
-      {result.hitl_requests.length > 0 && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
-          <div className="font-semibold">
-            Human-in-the-Loop Approval Queued ({result.hitl_requests.length})
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="hf-chip hf-chip-plain">
+              <Sparkles className="h-3 w-3" />
+              {title || result.routed_workflow_name}
+            </span>
+            <span className={statusChipClass}>{result.execution_status}</span>
+            <span className="font-mono text-xs text-[var(--muted)]">
+              {result.classifier_result}
+            </span>
           </div>
-          <ul className="mt-1 space-y-1">
-            {result.hitl_requests.map((h, i) => (
-              <li key={i}>
-                • <strong>{h.title}</strong> ({h.action_type}) — review in Agent Execution Monitor
-                or operational tab.
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
-      {result.trace_steps.length > 0 && (
-        <div className="mt-3 border-t border-slate-200/70 pt-2.5">
-          <button
-            type="button"
-            onClick={() => setTraceOpen((o) => !o)}
-            className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-500"
-          >
-            {traceOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-            LangGraph Execution Trace ({result.trace_steps.length} nodes)
-          </button>
-          {traceOpen && (
-            <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
-              {result.trace_steps.map((step, i) => (
-                <div
-                  key={`${step.step}-${i}`}
-                  className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px]"
-                >
-                  <span className="font-mono font-semibold text-slate-800">{step.step}</span>
-                  <span className="truncate px-2 text-slate-500">{step.detail}</span>
-                  <span className="font-mono text-slate-400">{step.duration_ms}ms</span>
-                </div>
+          <div className="mt-2.5 flex flex-wrap items-center gap-2 font-mono text-[11.5px] text-[var(--muted)]">
+            {result.intent_analysis?.risk_level && (
+              <span className="hf-chip hf-chip-plain">
+                risk:{result.intent_analysis.risk_level}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 text-[var(--ink-2)]">
+              <Cpu className="h-3.5 w-3.5" />
+              {result.model_used}
+            </span>
+            <span>
+              &bull; {result.input_tokens} in / {result.output_tokens} out tok
+              {typeof result.tokens_saved === "number" && result.tokens_saved > 0
+                ? ` • ${result.tokens_saved} saved (${result.reduction_percent ?? 0}%)`
+                : ""}
+            </span>
+          </div>
+
+          {(result.guardrail_flags?.length || result.optimization_methods_used?.length) ? (
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {result.guardrail_flags?.map((flag) => (
+                <span key={flag} className="hf-chip hf-chip-escalate">
+                  guardrail: {flag}
+                </span>
               ))}
+              {result.optimization_methods_used?.map((m) => (
+                <span key={m} className="hf-chip hf-chip-plain">
+                  {m}
+                </span>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="hf-meter" aria-hidden="true">
+            <i
+              style={{
+                flexGrow: isDeclined ? 0 : Math.max(1, completedSteps),
+                background: isDeclined
+                  ? "var(--field-hover)"
+                  : isPaused
+                    ? "var(--esc)"
+                    : "var(--pass)",
+              }}
+            />
+            <i
+              style={{
+                flexGrow: isDeclined ? 1 : 0.15,
+                background: isDeclined ? "var(--block)" : "var(--field-hover)",
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className={`hf-claim ${claimStateClass}`}>
+        <div className="bar" />
+        <div className="min-w-0 pr-2">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              Agent Output
+            </span>
+            <span
+              className="text-xs font-semibold"
+              style={{
+                color: isDeclined
+                  ? "var(--block)"
+                  : isPaused
+                    ? "var(--esc)"
+                    : "var(--pass)",
+              }}
+            >
+              {isDeclined ? "blocked / refused" : isPaused ? "awaiting approval" : "completed"}
+            </span>
+          </div>
+
+          <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[var(--ink)]">
+            {result.final_response_text}
+          </div>
+
+          {result.citations.length > 0 && (
+            <div className="hf-quote">
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">
+                <FileCheck className="h-3.5 w-3.5 text-[var(--pass)]" />
+                Grounded Citations
+              </div>
+              <ul className="mt-1.5 space-y-1 text-xs text-[var(--ink-2)]">
+                {result.citations.map((cite, idx) => (
+                  <li key={idx}>&bull; {cite}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {result.hitl_requests.length > 0 && (
+            <div className="mt-3 rounded-xl border border-dashed border-[var(--esc)] bg-[var(--esc-soft)] p-3 text-xs text-[var(--ink)]">
+              <div className="font-semibold text-[var(--esc)]">
+                Human-in-the-Loop Approval Queued ({result.hitl_requests.length})
+              </div>
+              <ul className="mt-1 space-y-1 text-[var(--ink-2)]">
+                {result.hitl_requests.map((h, i) => (
+                  <li key={i}>
+                    &bull; <strong className="text-[var(--ink)]">{h.title}</strong> ({h.action_type}) &mdash; review in
+                    Agent Execution Monitor or operational tab.
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {result.trace_steps.length > 0 && (
+            <div className="mt-3.5 border-t border-[var(--line)] pt-2.5">
+              <button
+                type="button"
+                onClick={() => setTraceOpen((o) => !o)}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--ink-2)] hover:text-[var(--ink)]"
+              >
+                {traceOpen ? (
+                  <ChevronDown className="h-3.5 w-3.5" />
+                ) : (
+                  <ChevronRight className="h-3.5 w-3.5" />
+                )}
+                LangGraph Execution Trace ({result.trace_steps.length} nodes)
+              </button>
+              {traceOpen && (
+                <div className="mt-2.5 grid gap-1.5 sm:grid-cols-2">
+                  {result.trace_steps.map((step, i) => (
+                    <div
+                      key={`${step.step}-${i}`}
+                      className="flex items-center justify-between rounded-lg border border-[var(--line)] bg-[var(--field)] px-2.5 py-1.5 text-[11px]"
+                    >
+                      <span className="font-mono font-semibold text-[var(--ink)]">{step.step}</span>
+                      <span className="truncate px-2 text-[var(--muted)]">{step.detail}</span>
+                      <span className="font-mono text-[var(--muted)]">{step.duration_ms}ms</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

@@ -52,81 +52,83 @@ export const CandidatesPage: React.FC = () => {
   };
 
   const matrix =
-    ((shortlistRes?.structured_output?.comparison_matrix as Record<string, unknown>[]) || []);
+    (shortlistRes?.structured_output?.comparison_matrix as Record<string, unknown>[]) || [];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="hf-page-head mb-0">
         <div>
-          <h1 className="font-display text-2xl font-bold text-slate-900">
-            Candidates &amp; Shortlisting
-          </h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="hf-h1">Candidates &amp; Shortlisting</h1>
+          <p className="hf-lede">
             Browse tenant-isolated candidate profiles from PostgreSQL and generate merit-based
             shortlist comparisons.
           </p>
         </div>
         <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3.5 top-2.5 h-4 w-4 text-[var(--muted)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Filter candidates or skills..."
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-indigo-400"
+            className="hf-input rounded-full pl-9"
           />
         </div>
       </div>
 
       {/* Candidate Directory Table */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-indigo-600" />
-          <h2 className="font-display text-base font-bold text-slate-900">
-            Candidate Directory ({filtered.length})
-          </h2>
+      <div className="hf-card">
+        <div className="mb-4 flex items-center gap-2">
+          <Users className="h-4 w-4 text-[var(--muted)]" />
+          <h2 className="hf-h2 mb-0">Candidate Directory ({filtered.length})</h2>
         </div>
 
         {filtered.length === 0 ? (
-          <p className="mt-4 text-xs text-slate-500">
+          <div className="hf-empty">
+            <strong>No matching candidates</strong>
             No matching candidates found in this tenant workspace.
-          </p>
+          </div>
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500">
+          <div className="overflow-x-auto">
+            <table className="hf-rows">
+              <thead>
                 <tr>
-                  <th className="py-2.5 pr-4">Name</th>
-                  <th className="py-2.5 pr-4">Target Role</th>
-                  <th className="py-2.5 pr-4">Exp</th>
-                  <th className="py-2.5 pr-4">Extracted Skills</th>
-                  <th className="py-2.5 pr-4">Score</th>
-                  <th className="py-2.5">Status</th>
+                  <th>Name</th>
+                  <th>Target Role</th>
+                  <th>Exp</th>
+                  <th>Extracted Skills</th>
+                  <th className="num">Score</th>
+                  <th>Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {filtered.map((c) => (
                   <tr key={c.id}>
-                    <td className="py-3 pr-4 font-semibold text-slate-900">{c.full_name}</td>
-                    <td className="py-3 pr-4 text-slate-600">{c.target_role}</td>
-                    <td className="py-3 pr-4 font-mono text-slate-600">{c.years_experience}y</td>
-                    <td className="py-3 pr-4">
+                    <td className="font-semibold text-[var(--ink)]">{c.full_name}</td>
+                    <td>{c.target_role}</td>
+                    <td className="font-mono text-xs">{c.years_experience}y</td>
+                    <td>
                       <div className="flex flex-wrap gap-1">
                         {c.skills.slice(0, 6).map((s) => (
-                          <span
-                            key={s}
-                            className="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700"
-                          >
+                          <span key={s} className="hf-chip hf-chip-plain">
                             {s}
                           </span>
                         ))}
                       </div>
                     </td>
-                    <td className="py-3 pr-4 font-mono font-bold text-indigo-700">
+                    <td className="num font-mono">
                       {c.match_score !== null ? `${c.match_score}%` : "Unscored"}
                     </td>
-                    <td className="py-3">
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                    <td>
+                      <span
+                        className={`hf-chip ${
+                          c.status === "shortlisted" || c.status === "hired"
+                            ? "hf-chip-pass"
+                            : c.status === "rejected"
+                              ? "hf-chip-block"
+                              : "hf-chip-plain"
+                        }`}
+                      >
                         {c.status}
                       </span>
                     </td>
@@ -139,86 +141,70 @@ export const CandidatesPage: React.FC = () => {
       </div>
 
       {/* Candidate Shortlisting Runner */}
-      <form
-        onSubmit={handleRunShortlist}
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs"
-      >
+      <form onSubmit={handleRunShortlist} className="hf-card space-y-4">
         <div className="flex items-center gap-2">
-          <Award className="h-4 w-4 text-indigo-600" />
-          <h2 className="font-display text-base font-bold text-slate-900">
-            Generate Merit Shortlist Comparison
-          </h2>
+          <Award className="h-4 w-4 text-[var(--pass)]" />
+          <h2 className="hf-h2 mb-0">Generate Merit Shortlist Comparison</h2>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <div>
-            <label className="text-xs font-semibold text-slate-700">Role Title</label>
+          <div className="hf-field">
+            <label>Role Title</label>
             <input
               type="text"
               required
               value={roleTitle}
               onChange={(e) => setRoleTitle(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              className="hf-input"
             />
           </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-700">
-              Required Skills (comma-separated)
-            </label>
+          <div className="hf-field">
+            <label>Required Skills (comma-separated)</label>
             <input
               type="text"
               required
               value={requiredSkills}
               onChange={(e) => setRequiredSkills(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              className="hf-input"
             />
           </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-700">Shortlist Size (Top N)</label>
+          <div className="hf-field">
+            <label>Shortlist Size (Top N)</label>
             <input
               type="number"
               min={1}
               max={10}
               value={topN}
               onChange={(e) => setTopN(Number(e.target.value))}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              className="hf-input"
             />
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={running}
-          className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
-        >
+        <button type="submit" disabled={running} className="hf-btn hf-btn-primary">
           {running ? "Ranking Candidates..." : "Run Candidate Shortlisting Workflow"}
         </button>
       </form>
 
       {matrix.length > 0 && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-          <h3 className="font-display text-base font-bold text-slate-900">
-            Ranked Shortlist Matrix
-          </h3>
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
+        <div className="hf-card space-y-3">
+          <h3 className="hf-h2 mb-0">Ranked Shortlist Matrix</h3>
+          <div className="grid gap-3 md:grid-cols-3">
             {matrix.map((row, idx) => (
-              <div
-                key={idx}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900">
+              <div key={idx} className="hf-subcard text-xs">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-[var(--ink)]">
                     #{idx + 1} {String(row.candidate_label || "")}
                   </span>
-                  <span className="font-mono font-bold text-indigo-700">
+                  <span className="hf-chip hf-chip-pass font-mono">
                     {String(row.match_score ?? 0)}%
                   </span>
                 </div>
-                <p className="mt-1 text-slate-600">
+                <p className="mt-1.5 text-[var(--muted)]">
                   Exp: {String(row.years_experience ?? 0)} yrs
                 </p>
                 {Array.isArray(row.missing_skills) && row.missing_skills.length > 0 && (
-                  <p className="mt-2 text-rose-700">
+                  <p className="mt-2 text-[var(--block)]">
                     Missing: {(row.missing_skills as string[]).join(", ")}
                   </p>
                 )}

@@ -76,44 +76,39 @@ export const KnowledgeBasePage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-slate-900">Knowledge Base</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="hf-h1">Knowledge Base</h1>
+        <p className="hf-lede">
           Upload company employee handbooks, hiring rubrics, leveling guides, and resumes with
           tenant-isolated pgvector indexing and role-based access filtering.
         </p>
       </div>
 
       {canManage && (
-        <form
-          onSubmit={handleUpload}
-          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs"
-        >
+        <form onSubmit={handleUpload} className="hf-card space-y-4">
           <div className="flex items-center gap-2">
-            <Upload className="h-4 w-4 text-indigo-600" />
-            <h2 className="font-display text-base font-bold text-slate-900">
-              Upload &amp; Index HR Document
-            </h2>
+            <Upload className="h-4 w-4 text-[var(--pass)]" />
+            <h2 className="hf-h2 mb-0">Upload &amp; Index HR Document</h2>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <label className="text-xs font-semibold text-slate-700">Document Title</label>
+            <div className="hf-field">
+              <label>Document Title</label>
               <input
                 type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., 2026 Parental Leave Policy"
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+                className="hf-input"
               />
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-slate-700">Document Type</label>
+            <div className="hf-field">
+              <label>Document Type</label>
               <select
                 value={sourceType}
                 onChange={(e) => setSourceType(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+                className="hf-input"
               >
                 <option value="handbook">Employee Handbook</option>
                 <option value="policy">HR Policy</option>
@@ -123,12 +118,12 @@ export const KnowledgeBasePage: React.FC = () => {
               </select>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-slate-700">Minimum RBAC Access</label>
+            <div className="hf-field">
+              <label>Minimum RBAC Access</label>
               <select
                 value={minRoleAccess}
                 onChange={(e) => setMinRoleAccess(e.target.value as UserRole)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+                className="hf-input"
               >
                 <option value="business_employee">All Employees (business_employee)</option>
                 <option value="business_admin">HR Admins Only (business_admin)</option>
@@ -136,12 +131,12 @@ export const KnowledgeBasePage: React.FC = () => {
               </select>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-slate-700">Primary HR Domain</label>
+            <div className="hf-field">
+              <label>Primary HR Domain</label>
               <select
                 value={workflowSlug}
                 onChange={(e) => setWorkflowSlug(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+                className="hf-input"
               >
                 <option value="hr-policy-support">Employee Policy Support</option>
                 <option value="recruitment-screening">Recruitment &amp; Screening</option>
@@ -152,10 +147,12 @@ export const KnowledgeBasePage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <label className="flex flex-1 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-2.5 text-xs text-slate-600 hover:border-indigo-400">
-              <FileText className="h-4 w-4 text-indigo-600" />
+            <label className="flex flex-1 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-[var(--line)] bg-[var(--field)] px-4 py-2.5 text-xs text-[var(--ink-2)] transition hover:border-[var(--muted)]">
+              <FileText className="h-4 w-4 text-[var(--ink)]" />
               <span className="truncate">
-                {file ? `${file.name} (${Math.max(1, Math.round(file.size / 1024))} KB)` : "Choose PDF, DOCX, TXT, MD, or CSV file..."}
+                {file
+                  ? `${file.name} (${Math.max(1, Math.round(file.size / 1024))} KB)`
+                  : "Choose PDF, DOCX, TXT, MD, or CSV file..."}
               </span>
               <input
                 type="file"
@@ -169,19 +166,19 @@ export const KnowledgeBasePage: React.FC = () => {
             <button
               type="submit"
               disabled={uploading || !file || !title.trim()}
-              className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
+              className="hf-btn hf-btn-primary"
             >
               {uploading ? "Uploading & Indexing..." : "Upload & Index"}
             </button>
           </div>
 
           {statusMsg && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-medium text-emerald-800">
+            <div className="rounded-xl border border-[color:var(--pass-soft)] bg-[var(--pass-soft)] px-3.5 py-2 text-xs font-medium text-[var(--pass)]">
               {statusMsg}
             </div>
           )}
           {errorMsg && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-medium text-rose-800">
+            <div className="rounded-xl border border-[color:var(--block-soft)] bg-[var(--block-soft)] px-3.5 py-2 text-xs font-medium text-[var(--block)]">
               {errorMsg}
             </div>
           )}
@@ -189,60 +186,54 @@ export const KnowledgeBasePage: React.FC = () => {
       )}
 
       {/* Documents List */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-4 w-4 text-indigo-600" />
-          <h2 className="font-display text-base font-bold text-slate-900">
-            Indexed Workspace Documents ({knowledgeDocs.length})
-          </h2>
+      <div className="hf-card">
+        <div className="mb-4 flex items-center gap-2">
+          <BookOpen className="h-4 w-4 text-[var(--muted)]" />
+          <h2 className="hf-h2 mb-0">Indexed Workspace Documents ({knowledgeDocs.length})</h2>
         </div>
 
         {knowledgeDocs.length === 0 ? (
-          <p className="mt-4 text-xs text-slate-500">
+          <div className="hf-empty">
+            <strong>No accessible documents</strong>
             No accessible documents found for role <code>{session.role}</code>.
-          </p>
+          </div>
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500">
+          <div className="overflow-x-auto">
+            <table className="hf-rows">
+              <thead>
                 <tr>
-                  <th className="py-2.5 pr-4">Title &amp; File</th>
-                  <th className="py-2.5 pr-4">Domain</th>
-                  <th className="py-2.5 pr-4">Min Role</th>
-                  <th className="py-2.5 pr-4">Chunks</th>
-                  <th className="py-2.5 pr-4">Status</th>
-                  <th className="py-2.5 text-right">Actions</th>
+                  <th>Title &amp; File</th>
+                  <th>Domain</th>
+                  <th>Min Role</th>
+                  <th className="num">Chunks</th>
+                  <th>Status</th>
+                  <th className="text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {knowledgeDocs.map((doc) => (
                   <tr key={doc.id}>
-                    <td className="py-3 pr-4">
-                      <div className="font-semibold text-slate-900">{doc.title}</div>
-                      <div className="font-mono text-[11px] text-slate-500">
-                        {doc.original_filename} ({Math.max(1, Math.round(doc.file_size_bytes / 1024))} KB)
+                    <td>
+                      <div className="font-semibold text-[var(--ink)]">{doc.title}</div>
+                      <div className="font-mono text-[11px] text-[var(--muted)]">
+                        {doc.original_filename} (
+                        {Math.max(1, Math.round(doc.file_size_bytes / 1024))} KB)
                       </div>
                     </td>
-                    <td className="py-3 pr-4">
-                      <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
-                        {doc.source_type}
-                      </span>
+                    <td>
+                      <span className="hf-chip hf-chip-plain">{doc.source_type}</span>
                     </td>
-                    <td className="py-3 pr-4 font-mono text-[11px] text-slate-700">
-                      {doc.min_role_access}
+                    <td className="font-mono text-xs">{doc.min_role_access}</td>
+                    <td className="num font-mono">{doc.chunk_count}</td>
+                    <td>
+                      <span className="hf-chip hf-chip-pass">{doc.status}</span>
                     </td>
-                    <td className="py-3 pr-4 font-mono text-slate-600">{doc.chunk_count}</td>
-                    <td className="py-3 pr-4">
-                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                        {doc.status}
-                      </span>
-                    </td>
-                    <td className="py-3 text-right">
-                      <div className="inline-flex items-center gap-2">
+                    <td className="text-right">
+                      <div className="inline-flex items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => handleOpenMarkdown(doc.id)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-medium text-indigo-700 hover:bg-indigo-100"
+                          className="hf-btn hf-btn-sm"
                         >
                           <FileCode className="h-3 w-3" />
                           .md
@@ -252,7 +243,7 @@ export const KnowledgeBasePage: React.FC = () => {
                           onClick={() =>
                             apiClient.downloadHrKnowledge(doc.id, doc.original_filename)
                           }
-                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50"
+                          className="hf-btn hf-btn-sm"
                         >
                           <Download className="h-3 w-3" />
                           Download
@@ -261,7 +252,7 @@ export const KnowledgeBasePage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => deleteKnowledgeDoc(doc.id)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-medium text-rose-700 hover:bg-rose-100"
+                            className="hf-btn hf-btn-danger hf-btn-sm"
                           >
                             <Trash2 className="h-3 w-3" />
                             Delete
@@ -279,18 +270,18 @@ export const KnowledgeBasePage: React.FC = () => {
 
       {/* Obsidian Markdown Preview Drawer */}
       {mdPreview && (
-        <div className="rounded-2xl border border-indigo-200 bg-white p-6 shadow-xs space-y-3">
+        <div className="hf-card space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FileCode className="h-4 w-4 text-indigo-600" />
-              <h3 className="font-display text-sm font-bold text-slate-900">
+              <FileCode className="h-4 w-4 text-[var(--pass)]" />
+              <h3 className="text-sm font-bold text-[var(--ink)]">
                 Obsidian Markdown Note: {mdPreview.filename}
               </h3>
             </div>
             <button
               type="button"
               onClick={() => setMdPreview(null)}
-              className="text-xs font-medium text-slate-500 hover:text-slate-800"
+              className="hf-btn hf-btn-sm"
             >
               Close
             </button>
@@ -298,13 +289,13 @@ export const KnowledgeBasePage: React.FC = () => {
           {mdPreview.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {mdPreview.tags.map((t) => (
-                <span key={t} className="rounded bg-slate-100 px-2 py-0.5 text-[11px] text-slate-700">
+                <span key={t} className="hf-chip hf-chip-plain">
                   #{t}
                 </span>
               ))}
             </div>
           )}
-          <pre className="max-h-72 overflow-auto rounded-xl bg-slate-950 p-4 text-[11px] text-slate-100">
+          <pre className="max-h-72 overflow-auto rounded-xl border border-[var(--line)] bg-[var(--field)] p-4 font-mono text-xs text-[var(--ink)]">
             {mdPreview.markdown}
           </pre>
         </div>
@@ -312,47 +303,47 @@ export const KnowledgeBasePage: React.FC = () => {
 
       {/* Lightweight PostgreSQL-backed HR Knowledge Graph */}
       {graphData && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-3">
+        <div className="hf-card space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Network className="h-4 w-4 text-indigo-600" />
-              <h2 className="font-display text-base font-bold text-slate-900">
-                Tenant HR Knowledge &amp; Skill Graph
-              </h2>
+              <Network className="h-4 w-4 text-[var(--muted)]" />
+              <h2 className="hf-h2 mb-0">Tenant HR Knowledge &amp; Skill Graph</h2>
             </div>
-            <span className="text-xs text-slate-500">
-              {graphData.summary.total_nodes} nodes • {graphData.summary.total_edges} edges (
+            <span className="text-xs text-[var(--muted)]">
+              {graphData.summary.total_nodes} nodes &bull; {graphData.summary.total_edges} edges (
               {graphData.pii_included ? "full workspace" : "PII-masked view"})
             </span>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <div className="text-[11px] font-semibold uppercase text-slate-500">
+            <div className="hf-subcard">
+              <div className="text-[11px] font-semibold uppercase text-[var(--muted)]">
                 Graph Nodes (Sample)
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {graphData.nodes.slice(0, 18).map((n) => (
                   <span
                     key={n.id}
-                    className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] text-slate-700"
+                    className="rounded-lg border border-[var(--line)] bg-[var(--panel)] px-2 py-1 text-[11px] text-[var(--ink-2)]"
                   >
-                    <strong className="text-indigo-700">{n.type}:</strong> {n.label}
+                    <strong className="text-[var(--ink)]">{n.type}:</strong> {n.label}
                   </span>
                 ))}
               </div>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <div className="text-[11px] font-semibold uppercase text-slate-500">
+            <div className="hf-subcard">
+              <div className="text-[11px] font-semibold uppercase text-[var(--muted)]">
                 Graph Relationships ([[Wikilinks]], Skills, Tags)
               </div>
-              <ul className="mt-2 space-y-1 text-[11px] text-slate-700">
+              <ul className="mt-2 space-y-1 text-[11px] text-[var(--ink-2)]">
                 {graphData.edges.slice(0, 10).map((edge, idx) => (
                   <li key={idx} className="truncate font-mono">
-                    {edge.source} —[{edge.relation}]→ {edge.target}
+                    {edge.source} &mdash;[{edge.relation}]&rarr; {edge.target}
                   </li>
                 ))}
                 {graphData.edges.length === 0 && (
-                  <li className="text-slate-500">Upload documents with #tags or [[wikilinks]] to populate graph edges.</li>
+                  <li className="text-[var(--muted)]">
+                    Upload documents with #tags or [[wikilinks]] to populate graph edges.
+                  </li>
                 )}
               </ul>
             </div>

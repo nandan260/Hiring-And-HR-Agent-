@@ -53,7 +53,7 @@ export const ToolsIntegrationsPage: React.FC = () => {
 
   // Deduplicate by tool_slug so admin toggles & Fernet credential bindings stay unified
   const uniqueTools = useMemo(() => {
-    const map = new Map<string, typeof integrations[number] & { workflows: string[] }>();
+    const map = new Map<string, (typeof integrations)[number] & { workflows: string[] }>();
     for (const item of integrations) {
       const existing = map.get(item.tool_slug);
       if (!existing) {
@@ -149,7 +149,9 @@ export const ToolsIntegrationsPage: React.FC = () => {
       await apiClient.updateMcpToolPermission(serverId, { tool_name: toolName, allowed });
       await refreshRuntimeData();
     } catch (err) {
-      setLastActionError(err instanceof Error ? err.message : "Failed to update MCP tool permission");
+      setLastActionError(
+        err instanceof Error ? err.message : "Failed to update MCP tool permission"
+      );
     } finally {
       setBusyMcpId(null);
     }
@@ -157,41 +159,40 @@ export const ToolsIntegrationsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="hf-page-head mb-0">
         <div>
-          <h1 className="font-display text-2xl font-bold text-slate-900">
-            Tools and Integrations
-          </h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="hf-h1">Tools and Integrations</h1>
+          <p className="hf-lede">
             Manage schema-enforced HR tools, external MCP client connections, approval gates, and
             Fernet-encrypted credentials per tenant.
           </p>
         </div>
         {!canManage && (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+          <span className="hf-chip hf-chip-escalate">
             <Lock className="h-3.5 w-3.5" />
             Read-only (Admin/Owner required to modify)
           </span>
         )}
       </div>
 
-      <div className="rounded-xl border border-indigo-200/80 bg-indigo-50/70 px-4 py-3 text-xs text-indigo-950">
-        <div className="flex items-start gap-2">
-          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
+      <div className="hf-claim escalated">
+        <div className="bar" />
+        <div className="flex items-start gap-2.5 pr-2 text-xs text-[var(--ink-2)]">
+          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--esc)]" />
           <span>
-            <strong>Runtime Security Policy:</strong> Resume PDF/DOCX parsing and weighted ranking
-            execute inside isolated tenant sandboxes. Web inspection runs inside ephemeral Playwright
-            contexts with SSRF and download blocking. External MCP servers require explicit Admin
-            approval before discovery or execution.
+            <strong className="text-[var(--ink)]">Runtime Security Policy:</strong> Resume
+            PDF/DOCX parsing and weighted ranking execute inside isolated tenant sandboxes. Web
+            inspection runs inside ephemeral Playwright contexts with SSRF and download blocking.
+            External MCP servers require explicit Admin approval before discovery or execution.
           </span>
         </div>
       </div>
 
       {/* Schema-Documented Core HR Tool Registry */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+      <div className="hf-card">
         <div className="flex items-center gap-2">
-          <Wrench className="h-4 w-4 text-indigo-600" />
-          <h2 className="font-display text-base font-bold text-slate-900">
+          <Wrench className="h-4 w-4 text-[var(--muted)]" />
+          <h2 className="hf-h2 mb-0">
             Schema-Documented HR Tool Registry ({structuredTools.length} Core Tools)
           </h2>
         </div>
@@ -199,43 +200,44 @@ export const ToolsIntegrationsPage: React.FC = () => {
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {structuredTools.map((tool) => {
             const props = Object.keys(
-              ((tool.input_schema as Record<string, unknown>)?.properties as Record<string, unknown>) || {}
+              ((tool.input_schema as Record<string, unknown>)?.properties as Record<
+                string,
+                unknown
+              >) || {}
             );
             return (
-              <div
-                key={tool.tool_id}
-                className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 text-xs"
-              >
+              <div key={tool.tool_id} className="hf-subcard text-xs">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <span className="font-bold text-slate-900">{tool.name}</span>
-                    <span className="ml-2 font-mono text-[11px] text-slate-500">
+                    <span className="font-bold text-[var(--ink)]">{tool.name}</span>
+                    <span className="ml-2 font-mono text-[11px] text-[var(--muted)]">
                       {tool.tool_id}
                     </span>
                   </div>
                   <div className="flex gap-1.5">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                      className={`hf-chip ${
                         tool.risk_level === "medium" || tool.risk_level === "high"
-                          ? "bg-amber-100 text-amber-900"
-                          : "bg-emerald-50 text-emerald-700"
+                          ? "hf-chip-escalate"
+                          : "hf-chip-pass"
                       }`}
                     >
                       risk: {tool.risk_level}
                     </span>
-                    <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-mono text-slate-700">
+                    <span className="hf-chip hf-chip-plain font-mono">
                       timeout: {tool.timeout_seconds}s
                     </span>
                   </div>
                 </div>
-                <p className="mt-1.5 text-slate-600">{tool.description}</p>
-                <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-slate-500">
+                <p className="mt-1.5 text-[var(--ink-2)]">{tool.description}</p>
+                <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-[var(--muted)]">
                   <span>
-                    <strong>Schema params:</strong>{" "}
+                    <strong className="text-[var(--ink-2)]">Schema params:</strong>{" "}
                     {props.length > 0 ? props.join(", ") : "none"}
                   </span>
                   <span>
-                    <strong>HITL:</strong> {tool.requires_hitl ? "Required" : "Auto-allowed"}
+                    <strong className="text-[var(--ink-2)]">HITL:</strong>{" "}
+                    {tool.requires_hitl ? "Required" : "Auto-allowed"}
                   </span>
                 </div>
               </div>
@@ -245,25 +247,21 @@ export const ToolsIntegrationsPage: React.FC = () => {
       </div>
 
       {/* External MCP Client Manager */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-5">
+      <div className="hf-card space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className="flex items-center gap-2">
-              <Server className="h-4 w-4 text-indigo-600" />
-              <h2 className="font-display text-base font-bold text-slate-900">
+              <Server className="h-4 w-4 text-[var(--muted)]" />
+              <h2 className="hf-h2 mb-0">
                 External MCP Servers ({mcpData?.servers.length ?? 0})
               </h2>
             </div>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-[var(--muted)]">
               Newly registered MCP servers are untrusted by default (`pending_approval`) and cannot
               be queried until approved by an Admin or Business Owner.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => refreshRuntimeData()}
-            className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-          >
+          <button type="button" onClick={() => refreshRuntimeData()} className="hf-btn hf-btn-sm">
             <RefreshCw className="h-3.5 w-3.5" />
             Refresh MCP
           </button>
@@ -272,7 +270,7 @@ export const ToolsIntegrationsPage: React.FC = () => {
         {canManage && (
           <form
             onSubmit={handleRegisterMcp}
-            className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-xs sm:grid-cols-2 lg:grid-cols-3"
+            className="hf-subcard grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-3"
           >
             <input
               type="text"
@@ -280,7 +278,7 @@ export const ToolsIntegrationsPage: React.FC = () => {
               placeholder="Server slug (e.g. hr-calendar-mcp)"
               value={mcpForm.slug}
               onChange={(e) => setMcpForm((p) => ({ ...p, slug: e.target.value }))}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none focus:border-indigo-400"
+              className="hf-input bg-[var(--panel)]"
             />
             <input
               type="text"
@@ -288,14 +286,14 @@ export const ToolsIntegrationsPage: React.FC = () => {
               placeholder="Display name"
               value={mcpForm.name}
               onChange={(e) => setMcpForm((p) => ({ ...p, name: e.target.value }))}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none focus:border-indigo-400"
+              className="hf-input bg-[var(--panel)]"
             />
             <select
               value={mcpForm.transport}
               onChange={(e) =>
                 setMcpForm((p) => ({ ...p, transport: e.target.value as "stdio" | "sse" }))
               }
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none focus:border-indigo-400"
+              className="hf-input bg-[var(--panel)]"
             >
               <option value="stdio">stdio (local command)</option>
               <option value="sse">sse (https endpoint)</option>
@@ -310,14 +308,14 @@ export const ToolsIntegrationsPage: React.FC = () => {
               }
               value={mcpForm.command_or_url}
               onChange={(e) => setMcpForm((p) => ({ ...p, command_or_url: e.target.value }))}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none focus:border-indigo-400"
+              className="hf-input bg-[var(--panel)]"
             />
             <input
               type="text"
               placeholder="Args comma-separated (optional)"
               value={mcpForm.args}
               onChange={(e) => setMcpForm((p) => ({ ...p, args: e.target.value }))}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none focus:border-indigo-400"
+              className="hf-input bg-[var(--panel)]"
             />
             <div className="flex gap-2">
               <input
@@ -325,12 +323,12 @@ export const ToolsIntegrationsPage: React.FC = () => {
                 placeholder="Allowed env keys (optional)"
                 value={mcpForm.env_keys}
                 onChange={(e) => setMcpForm((p) => ({ ...p, env_keys: e.target.value }))}
-                className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none focus:border-indigo-400"
+                className="hf-input flex-1 bg-[var(--panel)]"
               />
               <button
                 type="submit"
                 disabled={registeringMcp}
-                className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-2 font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+                className="hf-btn hf-btn-primary hf-btn-sm shrink-0"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Register
@@ -339,45 +337,41 @@ export const ToolsIntegrationsPage: React.FC = () => {
           </form>
         )}
 
-        {(!mcpData || mcpData.servers.length === 0) ? (
-          <p className="text-xs text-slate-500">No external MCP servers registered for this tenant.</p>
+        {!mcpData || mcpData.servers.length === 0 ? (
+          <div className="hf-empty py-8">
+            <strong>No external MCP servers</strong>
+            Register a custom HR MCP server above to integrate tools under Admin approval.
+          </div>
         ) : (
           <div className="space-y-3">
             {mcpData.servers.map((srv) => (
-              <div
-                key={srv.id}
-                className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-xs"
-              >
+              <div key={srv.id} className="hf-subcard text-xs">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-bold text-slate-900">{srv.name}</span>
-                      <span className="font-mono text-[11px] text-slate-500">
-                        {srv.slug} • {srv.transport}
+                      <span className="text-sm font-bold text-[var(--ink)]">{srv.name}</span>
+                      <span className="font-mono text-[11px] text-[var(--muted)]">
+                        {srv.slug} &bull; {srv.transport}
                       </span>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                          srv.is_approved
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-amber-100 text-amber-900"
-                        }`}
+                        className={`hf-chip ${srv.is_approved ? "hf-chip-pass" : "hf-chip-escalate"}`}
                       >
                         {srv.approval_status}
                       </span>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        className={`hf-chip ${
                           srv.connection_status === "connected"
-                            ? "bg-indigo-50 text-indigo-700"
+                            ? "hf-chip-pass"
                             : srv.connection_status === "unreachable"
-                              ? "bg-rose-50 text-rose-700"
-                              : "bg-slate-200 text-slate-700"
+                              ? "hf-chip-block"
+                              : "hf-chip-plain"
                         }`}
                       >
                         conn: {srv.connection_status}
                       </span>
                     </div>
                     {srv.last_error && (
-                      <p className="mt-1 text-[11px] text-rose-600">{srv.last_error}</p>
+                      <p className="mt-1 text-[11px] text-[var(--block)]">{srv.last_error}</p>
                     )}
                   </div>
 
@@ -388,7 +382,7 @@ export const ToolsIntegrationsPage: React.FC = () => {
                           type="button"
                           disabled={busyMcpId === srv.id}
                           onClick={() => handleApproval(srv.id, true)}
-                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
+                          className="hf-btn hf-btn-primary hf-btn-sm"
                         >
                           <CheckCircle2 className="h-3 w-3" /> Approve
                         </button>
@@ -397,7 +391,7 @@ export const ToolsIntegrationsPage: React.FC = () => {
                           type="button"
                           disabled={busyMcpId === srv.id}
                           onClick={() => handleApproval(srv.id, false)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50"
+                          className="hf-btn hf-btn-danger hf-btn-sm"
                         >
                           <XCircle className="h-3 w-3" /> Block
                         </button>
@@ -406,17 +400,17 @@ export const ToolsIntegrationsPage: React.FC = () => {
                         type="button"
                         disabled={busyMcpId === srv.id || !srv.is_approved}
                         onClick={() => handleDiscoverTools(srv.id)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                        className="hf-btn hf-btn-sm"
                       >
-                        <ShieldCheck className="h-3 w-3" /> Discover & Verify
+                        <ShieldCheck className="h-3 w-3" /> Discover &amp; Verify
                       </button>
                     </div>
                   )}
                 </div>
 
                 {srv.discovered_tools.length > 0 && (
-                  <div className="mt-3 space-y-1.5 border-t border-slate-200 pt-3">
-                    <div className="text-[11px] font-semibold text-slate-700">
+                  <div className="mt-3 space-y-1.5 border-t border-[var(--line)] pt-3">
+                    <div className="text-[11px] font-semibold text-[var(--ink-2)]">
                       Discovered Validated Tools ({srv.discovered_tools.length})
                     </div>
                     <div className="grid gap-2 sm:grid-cols-2">
@@ -426,11 +420,13 @@ export const ToolsIntegrationsPage: React.FC = () => {
                         return (
                           <div
                             key={dt.name}
-                            className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2"
+                            className="flex items-center justify-between gap-2 rounded-xl border border-[var(--line)] bg-[var(--panel)] px-3 py-2"
                           >
                             <div className="min-w-0">
-                              <div className="font-mono font-semibold text-slate-800">{dt.name}</div>
-                              <div className="truncate text-[10px] text-slate-500">
+                              <div className="font-mono font-semibold text-[var(--ink)]">
+                                {dt.name}
+                              </div>
+                              <div className="truncate text-[11px] text-[var(--muted)]">
                                 {dt.description}
                               </div>
                             </div>
@@ -438,10 +434,8 @@ export const ToolsIntegrationsPage: React.FC = () => {
                               type="button"
                               disabled={!canManage || busyMcpId === srv.id}
                               onClick={() => handleToggleMcpToolPerm(srv.id, dt.name, !isAllowed)}
-                              className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold disabled:opacity-50 ${
-                                isAllowed
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : "bg-slate-100 text-slate-600"
+                              className={`hf-chip cursor-pointer border-0 disabled:opacity-50 ${
+                                isAllowed ? "hf-chip-pass" : "hf-chip-plain"
                               }`}
                             >
                               {isAllowed ? "Allowed" : "Blocked"}
@@ -460,27 +454,22 @@ export const ToolsIntegrationsPage: React.FC = () => {
 
       {/* Existing Tenant Workflow Tool Permissions & Encrypted Secrets */}
       {uniqueTools.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-xs text-slate-500">
+        <div className="hf-card text-xs text-[var(--muted)]">
           No tool permissions initialized yet.
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {uniqueTools.map((tool) => (
-            <div
-              key={tool.id}
-              className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs"
-            >
+            <div key={tool.id} className="hf-card flex flex-col justify-between gap-4">
               <div>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <Plug className="h-4 w-4 text-indigo-600" />
-                      <h2 className="font-display text-sm font-bold text-slate-900">
-                        {tool.tool_name}
-                      </h2>
+                      <Plug className="h-4 w-4 text-[var(--ink)]" />
+                      <h2 className="text-sm font-bold text-[var(--ink)]">{tool.tool_name}</h2>
                     </div>
-                    <p className="mt-0.5 font-mono text-[11px] text-slate-500">
-                      {tool.tool_slug} • {tool.execution_mode}
+                    <p className="mt-0.5 font-mono text-[11px] text-[var(--muted)]">
+                      {tool.tool_slug} &bull; {tool.execution_mode}
                       {tool.mcp_server_slug ? ` • ${tool.mcp_server_slug}` : ""}
                     </p>
                   </div>
@@ -489,35 +478,35 @@ export const ToolsIntegrationsPage: React.FC = () => {
                     type="button"
                     disabled={!canManage}
                     onClick={() => toggleIntegrationPermission(tool.id, !tool.is_allowed)}
-                    className={`rounded-full px-3 py-1 text-[11px] font-semibold transition disabled:opacity-50 ${
-                      tool.is_allowed
-                        ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    className={`hf-chip cursor-pointer border-0 disabled:opacity-50 ${
+                      tool.is_allowed ? "hf-chip-pass" : "hf-chip-plain"
                     }`}
                   >
                     {tool.is_allowed ? "Allowed" : "Disabled"}
                   </button>
                 </div>
 
-                <p className="mt-2 text-xs leading-relaxed text-slate-600">{tool.description}</p>
+                <p className="mt-2.5 text-xs leading-relaxed text-[var(--ink-2)]">
+                  {tool.description}
+                </p>
 
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <div className="mt-3 flex flex-wrap gap-1.5">
                   {tool.requires_hitl && (
-                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
-                      Requires HITL Sign-Off
-                    </span>
+                    <span className="hf-chip hf-chip-escalate">Requires HITL Sign-Off</span>
                   )}
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                  <span className="hf-chip hf-chip-plain">
                     Used by: {tool.workflows.join(", ")}
                   </span>
                 </div>
               </div>
 
               {tool.auth_scheme !== "none" && (
-                <div className="space-y-2 border-t border-slate-100 pt-3">
+                <div className="space-y-2 border-t border-[var(--line)] pt-3">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-semibold text-slate-700">Encrypted Credential:</span>
-                    <span className="font-mono text-slate-600">
+                    <span className="font-semibold text-[var(--ink-2)]">
+                      Encrypted Credential:
+                    </span>
+                    <span className="font-mono text-[var(--ink)]">
                       {tool.credential_status === "bound_encrypted"
                         ? tool.masked_secret_ref
                         : "Not bound"}
@@ -533,7 +522,7 @@ export const ToolsIntegrationsPage: React.FC = () => {
                           setSecretInputs((prev) => ({ ...prev, [tool.id]: e.target.value }))
                         }
                         placeholder="Paste API key or OAuth token (Fernet encrypted)"
-                        className="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-indigo-400"
+                        className="hf-input flex-1 py-1.5 text-xs"
                       />
                       <button
                         type="button"
@@ -541,7 +530,7 @@ export const ToolsIntegrationsPage: React.FC = () => {
                           bindingId === tool.id || (secretInputs[tool.id] || "").trim().length < 4
                         }
                         onClick={() => handleBindSecret(tool.id)}
-                        className="inline-flex items-center gap-1 rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                        className="hf-btn hf-btn-primary hf-btn-sm shrink-0"
                       >
                         <KeyRound className="h-3.5 w-3.5" />
                         {bindingId === tool.id ? "Binding..." : "Bind"}

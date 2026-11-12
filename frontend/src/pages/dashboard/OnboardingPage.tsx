@@ -62,8 +62,8 @@ export const OnboardingPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-slate-900">Employee Onboarding</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="hf-h1">Employee Onboarding</h1>
+        <p className="hf-lede">
           Manage new-hire KYC verification, onboarding checklists, simulated IT SCIM provisioning,
           and team allocation approvals.
         </p>
@@ -71,34 +71,38 @@ export const OnboardingPage: React.FC = () => {
 
       {/* Pending Onboarding HITLs */}
       {onboardingApprovals.length > 0 && (
-        <div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50/70 p-5">
-          <div className="flex items-center gap-2 text-sm font-bold text-amber-950">
-            <Clock className="h-4 w-4 text-amber-600" />
+        <div className="space-y-3 rounded-[18px] border border-dashed border-[var(--esc)] bg-[var(--esc-soft)] p-5">
+          <div className="flex items-center gap-2 text-sm font-bold text-[var(--esc)]">
+            <Clock className="h-4 w-4" />
             Pending Onboarding Approvals ({onboardingApprovals.length})
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {onboardingApprovals.map((ap) => (
               <div
                 key={ap.id}
-                className="flex flex-col justify-between gap-3 rounded-xl border border-amber-200 bg-white p-4 text-xs"
+                className="hf-q-item flex flex-col justify-between gap-3 text-xs"
               >
                 <div>
-                  <div className="font-bold text-slate-900">{ap.title}</div>
-                  <p className="mt-1 text-slate-600">{ap.summary}</p>
+                  <div className="font-bold text-[var(--ink)]">{ap.title}</div>
+                  <p className="mt-1 text-[var(--muted)]">{ap.summary}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={() => resolveHitlApproval(ap.id, "approved", "Approved via Onboarding Page")}
-                    className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 font-semibold text-white hover:bg-emerald-500"
+                    onClick={() =>
+                      resolveHitlApproval(ap.id, "approved", "Approved via Onboarding Page")
+                    }
+                    className="hf-btn hf-btn-primary hf-btn-sm"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     Approve Provisioning
                   </button>
                   <button
                     type="button"
-                    onClick={() => resolveHitlApproval(ap.id, "rejected", "Rejected via Onboarding Page")}
-                    className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 font-semibold text-rose-700 hover:bg-rose-100"
+                    onClick={() =>
+                      resolveHitlApproval(ap.id, "rejected", "Rejected via Onboarding Page")
+                    }
+                    className="hf-btn hf-btn-danger hf-btn-sm"
                   >
                     <XCircle className="h-3.5 w-3.5" />
                     Reject
@@ -113,32 +117,25 @@ export const OnboardingPage: React.FC = () => {
       {/* Existing Onboarding Trackers */}
       <div className="grid gap-4 md:grid-cols-2">
         {onboardingWorkflows.length === 0 ? (
-          <div className="col-span-2 rounded-2xl border border-slate-200 bg-white p-6 text-xs text-slate-500 shadow-xs">
+          <div className="hf-card col-span-2 text-xs text-[var(--muted)]">
             No active onboarding records yet. Use the form below to start onboarding a new hire.
           </div>
         ) : (
           onboardingWorkflows.map((wf) => (
-            <div
-              key={wf.id}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs"
-            >
+            <div key={wf.id} className="hf-card">
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <h3 className="font-display text-base font-bold text-slate-900">
-                    {wf.employee_name}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    {wf.role_title} • {wf.department}
+                  <h3 className="text-base font-bold text-[var(--ink)]">{wf.employee_name}</h3>
+                  <p className="text-xs text-[var(--muted)]">
+                    {wf.role_title} &bull; {wf.department}
                   </p>
                 </div>
-                <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 font-mono text-xs font-bold text-indigo-700">
-                  {wf.progress_percent}%
-                </span>
+                <span className="hf-chip hf-chip-pass font-mono">{wf.progress_percent}%</span>
               </div>
 
-              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[var(--field)]">
                 <div
-                  className="h-full rounded-full bg-indigo-600"
+                  className="h-full rounded-full bg-[var(--pass)] transition-all"
                   style={{ width: `${wf.progress_percent}%` }}
                 />
               </div>
@@ -147,10 +144,8 @@ export const OnboardingPage: React.FC = () => {
                 {Object.entries(wf.documents_status).map(([docKey, docStat]) => (
                   <span
                     key={docKey}
-                    className={`rounded-full px-2 py-0.5 font-medium ${
-                      docStat === "verified"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-amber-50 text-amber-800"
+                    className={`hf-chip ${
+                      docStat === "verified" ? "hf-chip-pass" : "hf-chip-escalate"
                     }`}
                   >
                     {docKey}: {docStat}
@@ -158,12 +153,13 @@ export const OnboardingPage: React.FC = () => {
                 ))}
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-slate-600">
-                <div className="rounded-lg bg-slate-50 px-2.5 py-1.5">
-                  <strong>IT SCIM:</strong> {String(wf.it_provisioning?.scim_status || "draft")}
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-[var(--ink-2)]">
+                <div className="hf-subcard px-3 py-2">
+                  <strong className="text-[var(--ink)]">IT SCIM:</strong>{" "}
+                  {String(wf.it_provisioning?.scim_status || "draft")}
                 </div>
-                <div className="rounded-lg bg-slate-50 px-2.5 py-1.5">
-                  <strong>Team Allocation:</strong>{" "}
+                <div className="hf-subcard px-3 py-2">
+                  <strong className="text-[var(--ink)]">Team Allocation:</strong>{" "}
                   {String(wf.team_allocation?.status || "pending")}
                 </div>
               </div>
@@ -173,63 +169,58 @@ export const OnboardingPage: React.FC = () => {
       </div>
 
       {/* Start / Resume Onboarding Form */}
-      <form
-        onSubmit={handleRunOnboarding}
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs"
-      >
+      <form onSubmit={handleRunOnboarding} className="hf-card space-y-4">
         <div className="flex items-center gap-2">
-          <UserCheck className="h-4 w-4 text-indigo-600" />
-          <h2 className="font-display text-base font-bold text-slate-900">
-            Start or Update New-Hire Onboarding
-          </h2>
+          <UserCheck className="h-4 w-4 text-[var(--pass)]" />
+          <h2 className="hf-h2 mb-0">Start or Update New-Hire Onboarding</h2>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <div>
-            <label className="text-xs font-semibold text-slate-700">Employee Name</label>
+          <div className="hf-field">
+            <label>Employee Name</label>
             <input
               type="text"
               required
               value={employeeName}
               onChange={(e) => setEmployeeName(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              className="hf-input"
             />
           </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-700">Role Title</label>
+          <div className="hf-field">
+            <label>Role Title</label>
             <input
               type="text"
               required
               value={roleTitle}
               onChange={(e) => setRoleTitle(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              className="hf-input"
             />
           </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-700">Department</label>
+          <div className="hf-field">
+            <label>Department</label>
             <input
               type="text"
               required
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              className="hf-input"
             />
           </div>
         </div>
 
-        <div>
-          <label className="text-xs font-semibold text-slate-700">Submitted KYC Documents</label>
-          <div className="mt-2 flex flex-wrap gap-3">
+        <div className="hf-field">
+          <label>Submitted KYC Documents</label>
+          <div className="mt-1 flex flex-wrap gap-2.5">
             {ALL_KYC_DOCS.map((doc) => (
               <label
                 key={doc.key}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--field)] px-3 py-2 text-xs font-medium text-[var(--ink)]"
               >
                 <input
                   type="checkbox"
                   checked={submittedDocs.includes(doc.key)}
                   onChange={() => toggleDoc(doc.key)}
-                  className="h-3.5 w-3.5 rounded text-indigo-600"
+                  className="h-3.5 w-3.5 accent-[var(--pass)]"
                 />
                 {doc.label}
               </label>
@@ -237,11 +228,7 @@ export const OnboardingPage: React.FC = () => {
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={running}
-          className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
-        >
+        <button type="submit" disabled={running} className="hf-btn hf-btn-primary">
           {running ? "Processing Onboarding..." : "Execute Onboarding Workflow"}
         </button>
       </form>

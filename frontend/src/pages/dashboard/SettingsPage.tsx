@@ -24,7 +24,9 @@ export const SettingsPage: React.FC = () => {
   const [modelTier, setModelTier] = useState<
     "tier_0_rule" | "tier_1_fast" | "tier_2_reasoning" | "auto_cascade"
   >(workspace?.settings.model_routing_tier || "auto_cascade");
-  const [monthlyQuota, setMonthlyQuota] = useState(workspace?.settings.monthly_token_quota ?? 2000000);
+  const [monthlyQuota, setMonthlyQuota] = useState(
+    workspace?.settings.monthly_token_quota ?? 2000000
+  );
   const [customPersona, setCustomPersona] = useState(
     workspace?.settings.custom_persona_prompt ?? ""
   );
@@ -92,296 +94,331 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-slate-900">Settings</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Manage AI compliance guardrails, workspace monthly token quota, team RBAC roles, audit
-          trails, and backend API connectivity.
-        </p>
-      </div>
-
-      {/* AI Guardrails & Monthly Token Quota */}
-      <form
-        onSubmit={handleSaveSettings}
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs"
-      >
-        <div className="flex items-center gap-2">
-          <Shield className="h-4 w-4 text-indigo-600" />
-          <h2 className="font-display text-base font-bold text-slate-900">
-            HR Agent Guardrails &amp; Monthly Token Quota
-          </h2>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="text-xs font-semibold text-slate-700">Model Routing Tier</label>
-            <select
-              disabled={!canManage}
-              value={modelTier}
-              onChange={(e) =>
-                setModelTier(
-                  e.target.value as "tier_0_rule" | "tier_1_fast" | "tier_2_reasoning" | "auto_cascade"
-                )
-              }
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400 disabled:bg-slate-50"
-            >
-              <option value="auto_cascade">Auto Cascade (Deterministic + Configurable LLM)</option>
-              <option value="tier_0_rule">Tier 0 Rule / Deterministic Only</option>
-              <option value="tier_1_fast">Tier 1 Fast</option>
-              <option value="tier_2_reasoning">Tier 2 Reasoning</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold text-slate-700">
-              Monthly Workspace Token Quota
-            </label>
-            <input
-              type="number"
-              min={100}
-              max={100000000}
-              disabled={!canManage}
-              value={monthlyQuota}
-              onChange={(e) => setMonthlyQuota(Number(e.target.value))}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400 disabled:bg-slate-50"
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-5 pt-1 text-xs font-medium text-slate-800">
-          <label className="inline-flex items-center gap-2">
-            <input
-              type="checkbox"
-              disabled={!canManage}
-              checked={blindMode}
-              onChange={(e) => setBlindMode(e.target.checked)}
-              className="h-4 w-4 rounded text-indigo-600"
-            />
-            Blind Resume Screening
-          </label>
-          <label className="inline-flex items-center gap-2">
-            <input
-              type="checkbox"
-              disabled={!canManage}
-              checked={strictPii}
-              onChange={(e) => setStrictPii(e.target.checked)}
-              className="h-4 w-4 rounded text-indigo-600"
-            />
-            Strict PII Masking
-          </label>
-          <label className="inline-flex items-center gap-2">
-            <input
-              type="checkbox"
-              disabled={!canManage}
-              checked={requireHitl}
-              onChange={(e) => setRequireHitl(e.target.checked)}
-              className="h-4 w-4 rounded text-indigo-600"
-            />
-            Require HITL Approval for Writes
-          </label>
-        </div>
-
+    <div className="space-y-8">
+      <div className="hf-page-head mb-0">
         <div>
-          <label className="text-xs font-semibold text-slate-700">
-            Custom Tenant Workspace Preferences (Non-overriding instructions)
-          </label>
-          <textarea
-            rows={2}
-            disabled={!canManage}
-            value={customPersona}
-            onChange={(e) => setCustomPersona(e.target.value)}
-            placeholder="e.g., Emphasize structured backend architecture skills and concise bullet summaries."
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400 disabled:bg-slate-50"
-          />
+          <h1 className="hf-h1">Settings</h1>
+          <p className="hf-lede">
+            Manage AI compliance guardrails, workspace monthly token quota, team RBAC roles, audit
+            trails, and backend API connectivity.
+          </p>
         </div>
-
-        {canManage && (
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={savingSettings}
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
-            >
-              <Save className="h-3.5 w-3.5" />
-              {savingSettings ? "Saving..." : "Save Workspace Settings"}
-            </button>
-            {settingsFeedback && <span className="text-xs text-slate-600">{settingsFeedback}</span>}
-          </div>
-        )}
-      </form>
-
-      {/* Organization Members & RBAC */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-indigo-600" />
-          <h2 className="font-display text-base font-bold text-slate-900">
-            Team Members &amp; Workflow RBAC ({organizationMembers.length})
-          </h2>
-        </div>
-
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500">
-              <tr>
-                <th className="py-2 pr-4">Name</th>
-                <th className="py-2 pr-4">Email</th>
-                <th className="py-2 pr-4">Role</th>
-                <th className="py-2">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {organizationMembers.map((m) => (
-                <tr key={m.memberId}>
-                  <td className="py-2.5 pr-4 font-semibold text-slate-900">{m.fullName}</td>
-                  <td className="py-2.5 pr-4 text-slate-600">{m.email}</td>
-                  <td className="py-2.5 pr-4">
-                    {canManage && m.role !== "platform_admin" ? (
-                      <select
-                        value={m.role}
-                        onChange={(e) =>
-                          updateMemberRole(
-                            m.memberId,
-                            e.target.value as "business_owner" | "business_admin" | "business_employee",
-                            m.isActive
-                          )
-                        }
-                        className="rounded-lg border border-slate-200 px-2 py-1 font-mono text-[11px]"
-                      >
-                        <option value="business_owner">business_owner</option>
-                        <option value="business_admin">business_admin</option>
-                        <option value="business_employee">business_employee</option>
-                      </select>
-                    ) : (
-                      <code className="font-mono text-[11px] text-slate-700">{m.role}</code>
-                    )}
-                  </td>
-                  <td className="py-2.5">
-                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                      {m.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {canManage && (
-          <form
-            onSubmit={handleInviteMember}
-            className="mt-5 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-5"
-          >
-            <input
-              type="text"
-              required
-              value={inviteName}
-              onChange={(e) => setInviteName(e.target.value)}
-              placeholder="Full Name"
-              className="rounded-xl border border-slate-200 px-3 py-2 text-xs"
-            />
-            <input
-              type="email"
-              required
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              placeholder="Email Address"
-              className="rounded-xl border border-slate-200 px-3 py-2 text-xs"
-            />
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={invitePassword}
-              onChange={(e) => setInvitePassword(e.target.value)}
-              placeholder="Initial Password"
-              className="rounded-xl border border-slate-200 px-3 py-2 text-xs"
-            />
-            <select
-              value={inviteRole}
-              onChange={(e) =>
-                setInviteRole(
-                  e.target.value as "business_owner" | "business_admin" | "business_employee"
-                )
-              }
-              className="rounded-xl border border-slate-200 px-3 py-2 text-xs"
-            >
-              <option value="business_employee">business_employee</option>
-              <option value="business_admin">business_admin</option>
-              <option value="business_owner">business_owner</option>
-            </select>
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800"
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              Add Member
-            </button>
-          </form>
-        )}
-        {inviteFeedback && <p className="mt-2 text-xs text-slate-600">{inviteFeedback}</p>}
       </div>
 
-      {/* Audit Log Viewer */}
-      {canManage && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-          <h2 className="font-display text-base font-bold text-slate-900">
-            Recent Security &amp; Governance Audit Logs ({auditLogs.length})
-          </h2>
-          {auditLogs.length === 0 ? (
-            <p className="mt-3 text-xs text-slate-500">No audit entries recorded yet.</p>
-          ) : (
-            <div className="mt-3 max-h-64 overflow-y-auto divide-y divide-slate-100 text-xs">
-              {auditLogs.slice(0, 20).map((log) => (
-                <div key={log.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                  <div>
-                    <code className="font-mono font-semibold text-indigo-700">{log.action}</code>
-                    <span className="mx-2 text-slate-300">•</span>
-                    <span className="text-slate-600">
-                      {log.resourceType} ({log.status})
-                    </span>
-                  </div>
-                  <span className="font-mono text-[11px] text-slate-400">
-                    {new Date(log.createdAt).toLocaleString()}
-                  </span>
-                </div>
-              ))}
+      <div className="hf-card space-y-0">
+        {/* Section 1: AI Guardrails & Monthly Token Quota */}
+        <form onSubmit={handleSaveSettings} className="hf-section">
+          <div className="hf-section-grid">
+            <div>
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-[var(--pass)]" />
+                <h2 className="hf-h2 mb-0">AI Guardrails &amp; Quota</h2>
+              </div>
+              <p className="hf-lede mt-2 text-xs">
+                Control model cascade tiering, monthly token ceiling, blind screening mode, and
+                human-in-the-loop write approvals.
+              </p>
             </div>
-          )}
-        </div>
-      )}
 
-      {/* Backend Connection Diagnostics */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-        <div className="flex items-center gap-2">
-          <Server className="h-4 w-4 text-slate-600" />
-          <h2 className="font-display text-base font-bold text-slate-900">
-            FastAPI Control Plane Endpoint
-          </h2>
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="hf-field">
+                  <label>Model Routing Tier</label>
+                  <select
+                    disabled={!canManage}
+                    value={modelTier}
+                    onChange={(e) =>
+                      setModelTier(
+                        e.target.value as
+                          | "tier_0_rule"
+                          | "tier_1_fast"
+                          | "tier_2_reasoning"
+                          | "auto_cascade"
+                      )
+                    }
+                    className="hf-input disabled:opacity-60"
+                  >
+                    <option value="auto_cascade">
+                      Auto Cascade (Deterministic + Configurable LLM)
+                    </option>
+                    <option value="tier_0_rule">Tier 0 Rule / Deterministic Only</option>
+                    <option value="tier_1_fast">Tier 1 Fast</option>
+                    <option value="tier_2_reasoning">Tier 2 Reasoning</option>
+                  </select>
+                </div>
+
+                <div className="hf-field">
+                  <label>Monthly Workspace Token Quota</label>
+                  <input
+                    type="number"
+                    min={100}
+                    max={100000000}
+                    disabled={!canManage}
+                    value={monthlyQuota}
+                    onChange={(e) => setMonthlyQuota(Number(e.target.value))}
+                    className="hf-input disabled:opacity-60"
+                  />
+                </div>
+              </div>
+
+              <div className="hf-policy">
+                <label className="hf-tier flex cursor-pointer items-center justify-between gap-2 text-xs font-semibold text-[var(--ink)]">
+                  <span>Blind Resume Screening</span>
+                  <input
+                    type="checkbox"
+                    disabled={!canManage}
+                    checked={blindMode}
+                    onChange={(e) => setBlindMode(e.target.checked)}
+                    className="h-4 w-4 accent-[var(--pass)]"
+                  />
+                </label>
+                <label className="hf-tier flex cursor-pointer items-center justify-between gap-2 text-xs font-semibold text-[var(--ink)]">
+                  <span>Strict PII Masking</span>
+                  <input
+                    type="checkbox"
+                    disabled={!canManage}
+                    checked={strictPii}
+                    onChange={(e) => setStrictPii(e.target.checked)}
+                    className="h-4 w-4 accent-[var(--pass)]"
+                  />
+                </label>
+                <label className="hf-tier flex cursor-pointer items-center justify-between gap-2 text-xs font-semibold text-[var(--ink)]">
+                  <span>Require HITL for Writes</span>
+                  <input
+                    type="checkbox"
+                    disabled={!canManage}
+                    checked={requireHitl}
+                    onChange={(e) => setRequireHitl(e.target.checked)}
+                    className="h-4 w-4 accent-[var(--esc)]"
+                  />
+                </label>
+              </div>
+
+              <div className="hf-field">
+                <label>Custom Tenant Workspace Preferences (Non-overriding instructions)</label>
+                <textarea
+                  rows={2}
+                  disabled={!canManage}
+                  value={customPersona}
+                  onChange={(e) => setCustomPersona(e.target.value)}
+                  placeholder="e.g., Emphasize structured backend architecture skills and concise bullet summaries."
+                  className="hf-input disabled:opacity-60"
+                />
+              </div>
+
+              {canManage && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="submit"
+                    disabled={savingSettings}
+                    className="hf-btn hf-btn-primary hf-btn-sm"
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    {savingSettings ? "Saving..." : "Save Workspace Settings"}
+                  </button>
+                  {settingsFeedback && (
+                    <span className="text-xs text-[var(--pass)]">{settingsFeedback}</span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </form>
+
+        {/* Section 2: Team Members & RBAC */}
+        <div className="hf-section">
+          <div className="hf-section-grid">
+            <div>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-[var(--ink)]" />
+                <h2 className="hf-h2 mb-0">
+                  Team &amp; RBAC ({organizationMembers.length})
+                </h2>
+              </div>
+              <p className="hf-lede mt-2 text-xs">
+                Assign business owners, HR admins, or policy-only employee accounts within your
+                isolated tenant.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <table className="hf-rows">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {organizationMembers.map((m) => (
+                      <tr key={m.memberId}>
+                        <td className="font-semibold text-[var(--ink)]">{m.fullName}</td>
+                        <td>{m.email}</td>
+                        <td>
+                          {canManage && m.role !== "platform_admin" ? (
+                            <select
+                              value={m.role}
+                              onChange={(e) =>
+                                updateMemberRole(
+                                  m.memberId,
+                                  e.target.value as
+                                    | "business_owner"
+                                    | "business_admin"
+                                    | "business_employee",
+                                  m.isActive
+                                )
+                              }
+                              className="hf-input w-auto py-1 font-mono text-xs"
+                            >
+                              <option value="business_owner">business_owner</option>
+                              <option value="business_admin">business_admin</option>
+                              <option value="business_employee">business_employee</option>
+                            </select>
+                          ) : (
+                            <code className="font-mono text-xs text-[var(--ink)]">{m.role}</code>
+                          )}
+                        </td>
+                        <td>
+                          <span className={`hf-chip ${m.isActive ? "hf-chip-pass" : "hf-chip-plain"}`}>
+                            {m.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {canManage && (
+                <form
+                  onSubmit={handleInviteMember}
+                  className="grid gap-2.5 border-t border-[var(--line)] pt-4 sm:grid-cols-2 lg:grid-cols-[1fr_1.2fr_0.9fr_1.2fr_auto]"
+                >
+                  <input
+                    type="text"
+                    required
+                    value={inviteName}
+                    onChange={(e) => setInviteName(e.target.value)}
+                    placeholder="Full Name"
+                    className="hf-input text-xs"
+                  />
+                  <input
+                    type="email"
+                    required
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="Email Address"
+                    className="hf-input text-xs"
+                  />
+                  <input
+                    type="password"
+                    required
+                    minLength={8}
+                    value={invitePassword}
+                    onChange={(e) => setInvitePassword(e.target.value)}
+                    placeholder="Initial Password"
+                    className="hf-input text-xs"
+                  />
+                  <select
+                    value={inviteRole}
+                    onChange={(e) =>
+                      setInviteRole(
+                        e.target.value as "business_owner" | "business_admin" | "business_employee"
+                      )
+                    }
+                    className="hf-input text-xs"
+                  >
+                    <option value="business_employee">business_employee</option>
+                    <option value="business_admin">business_admin</option>
+                    <option value="business_owner">business_owner</option>
+                  </select>
+                  <button type="submit" className="hf-btn hf-btn-primary">
+                    <UserPlus className="h-3.5 w-3.5" />
+                    Add Member
+                  </button>
+                </form>
+              )}
+              {inviteFeedback && <p className="text-xs text-[var(--ink-2)]">{inviteFeedback}</p>}
+            </div>
+          </div>
         </div>
-        <p className="mt-1 text-xs text-slate-600">{backendStatus.detail}</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <input
-            type="text"
-            value={baseUrlInput}
-            onChange={(e) => setBaseUrlInput(e.target.value)}
-            className="flex-1 rounded-xl border border-slate-200 px-3 py-2 font-mono text-xs"
-          />
-          <button
-            type="button"
-            onClick={() => setApiBaseUrl(baseUrlInput)}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            Update Endpoint
-          </button>
-          <button
-            type="button"
-            onClick={() => refreshWorkspaceData()}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            Sync Now
-          </button>
+
+        {/* Section 3: Audit Logs */}
+        {canManage && (
+          <div className="hf-section">
+            <div className="hf-section-grid">
+              <div>
+                <h2 className="hf-h2 mb-0">Security Audit Logs ({auditLogs.length})</h2>
+                <p className="hf-lede mt-2 text-xs">
+                  Immutable event records scoped to your organization via PostgreSQL RLS.
+                </p>
+              </div>
+
+              <div>
+                {auditLogs.length === 0 ? (
+                  <p className="text-xs text-[var(--muted)]">No audit entries recorded yet.</p>
+                ) : (
+                  <div className="max-h-64 divide-y divide-[var(--line)] overflow-y-auto text-xs">
+                    {auditLogs.slice(0, 20).map((log) => (
+                      <div
+                        key={log.id}
+                        className="flex flex-wrap items-center justify-between gap-2 py-2.5"
+                      >
+                        <div>
+                          <code className="font-mono font-semibold text-[var(--ink)]">
+                            {log.action}
+                          </code>
+                          <span className="mx-2 text-[var(--muted)]">&bull;</span>
+                          <span className="text-[var(--ink-2)]">
+                            {log.resourceType} ({log.status})
+                          </span>
+                        </div>
+                        <span className="font-mono text-[11px] text-[var(--muted)]">
+                          {new Date(log.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Section 4: FastAPI Endpoint & Diagnostics */}
+        <div className="hf-section">
+          <div className="hf-section-grid">
+            <div>
+              <div className="flex items-center gap-2">
+                <Server className="h-4 w-4 text-[var(--muted)]" />
+                <h2 className="hf-h2 mb-0">FastAPI Control Plane</h2>
+              </div>
+              <p className="hf-lede mt-2 text-xs">{backendStatus.detail}</p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <input
+                type="text"
+                value={baseUrlInput}
+                onChange={(e) => setBaseUrlInput(e.target.value)}
+                className="hf-input flex-1 font-mono text-xs"
+              />
+              <button
+                type="button"
+                onClick={() => setApiBaseUrl(baseUrlInput)}
+                className="hf-btn"
+              >
+                Update Endpoint
+              </button>
+              <button type="button" onClick={() => refreshWorkspaceData()} className="hf-btn">
+                <RefreshCw className="h-3.5 w-3.5" />
+                Sync Now
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
