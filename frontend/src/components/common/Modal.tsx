@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import { X } from "lucide-react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -29,24 +28,20 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
       <div
-        className={`w-full ${maxWidth} animate-fade-in overflow-hidden rounded-[20px] border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] shadow-2xl`}
+        className={`w-full ${maxWidth} overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--bg)] text-[var(--fg)]`}
       >
-        <div className="flex items-start justify-between border-b border-[var(--line)] px-6 py-4">
+        <div className="flex items-start justify-between border-b border-[var(--border)] px-5 py-3">
           <div>
-            <h3 className="text-lg font-bold tracking-tight text-[var(--ink)]">{title}</h3>
-            {subtitle && <p className="mt-0.5 text-sm text-[var(--muted)]">{subtitle}</p>}
+            <h3 className="text-base font-bold text-[var(--fg)]">{title}</h3>
+            {subtitle && <p className="mt-0.5 text-xs text-[var(--muted)]">{subtitle}</p>}
           </div>
-          <button
-            onClick={onClose}
-            className="hf-icon-btn h-8 w-8"
-            aria-label="Close modal"
-          >
-            <X className="h-4 w-4" />
+          <button onClick={onClose} className="hf-btn hf-btn-sm" aria-label="Close modal">
+            Close
           </button>
         </div>
-        <div className="max-h-[82vh] overflow-y-auto px-6 py-5">{children}</div>
+        <div className="max-h-[80vh] overflow-y-auto px-5 py-4">{children}</div>
       </div>
     </div>
   );

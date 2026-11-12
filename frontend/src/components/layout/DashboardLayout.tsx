@@ -1,57 +1,14 @@
 import React, { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import {
-  Activity,
-  BarChart3,
-  BookOpen,
-  Bot,
-  Briefcase,
-  Building2,
-  CalendarClock,
-  CheckCircle2,
-  FileCode2,
-  FileSearch,
-  FileText,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  MessageSquareText,
-  Moon,
-  Plug,
-  Settings,
-  ShieldCheck,
-  Sun,
-  UserCheck,
-  Users,
-  X,
-} from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { useTheme } from "../../utils/theme";
 
 interface NavItem {
   to: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
   end?: boolean;
   badge?: number;
 }
-
-const BrandMark: React.FC = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z" />
-    <path d="M8.5 12l2.5 2.5 4.5-5" />
-  </svg>
-);
 
 export const DashboardLayout: React.FC = () => {
   const {
@@ -70,27 +27,26 @@ export const DashboardLayout: React.FC = () => {
   const pendingApprovals = approvals.filter((a) => a.status === "pending").length;
 
   const operationsNav: NavItem[] = [
-    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true },
-    { to: "/dashboard/recruitment", label: "Recruitment", icon: Briefcase },
-    { to: "/dashboard/screening", label: "Resume Screening", icon: FileSearch },
-    { to: "/dashboard/candidates", label: "Candidates", icon: Users },
-    { to: "/dashboard/jd-generator", label: "Job Description Generator", icon: FileText },
-    { to: "/dashboard/interviews", label: "Interview Management", icon: CalendarClock },
-    { to: "/dashboard/onboarding", label: "Employee Onboarding", icon: UserCheck },
-    { to: "/dashboard/assistant", label: "HR Assistant", icon: MessageSquareText },
-    { to: "/dashboard/analytics", label: "HR Analytics", icon: BarChart3 },
+    { to: "/dashboard", label: "Dashboard", end: true },
+    { to: "/dashboard/recruitment", label: "Recruitment" },
+    { to: "/dashboard/screening", label: "Resume Screening" },
+    { to: "/dashboard/candidates", label: "Candidates" },
+    { to: "/dashboard/jd-generator", label: "Job Description Generator" },
+    { to: "/dashboard/interviews", label: "Interview Management" },
+    { to: "/dashboard/onboarding", label: "Employee Onboarding" },
+    { to: "/dashboard/assistant", label: "HR Assistant" },
+    { to: "/dashboard/analytics", label: "HR Analytics" },
   ];
 
   const governanceNav: NavItem[] = [
     {
       to: "/dashboard/monitor",
       label: "Agent Execution Monitor",
-      icon: Activity,
       badge: pendingApprovals || undefined,
     },
-    { to: "/dashboard/knowledge-base", label: "Knowledge Base", icon: BookOpen },
-    { to: "/dashboard/integrations", label: "Tools and Integrations", icon: Plug },
-    { to: "/dashboard/settings", label: "Settings", icon: Settings },
+    { to: "/dashboard/knowledge-base", label: "Knowledge Base" },
+    { to: "/dashboard/integrations", label: "Tools and Integrations" },
+    { to: "/dashboard/settings", label: "Settings" },
   ];
 
   const quota = workspace?.quota;
@@ -105,180 +61,105 @@ export const DashboardLayout: React.FC = () => {
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-xs lg:hidden"
+          className="fixed inset-0 z-30 bg-black/60 lg:hidden"
         />
       )}
 
-      {/* Mobile Topbar */}
       <div className="hf-topbar">
         <Link to="/dashboard" className="hf-brand pb-0">
-          <BrandMark />
-          <span>HireFlow AI</span>
+          HireFlow AI
         </Link>
         <div className="flex items-center gap-2">
-          {pendingApprovals > 0 && (
-            <Link to="/dashboard/monitor" className="hf-chip hf-chip-escalate no-underline">
-              {pendingApprovals} HITL
-            </Link>
-          )}
           <button
             type="button"
-            onClick={() => setSidebarOpen((open) => !open)}
-            className="hf-icon-btn"
-            aria-label="Open Navigation"
-            aria-expanded={sidebarOpen}
+            onClick={() => setSidebarOpen((s) => !s)}
+            className="hf-btn hf-btn-sm"
           >
-            {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            Menu
           </button>
         </div>
       </div>
 
-      {/* Floating Sidebar */}
       <aside className={`hf-sidebar ${sidebarOpen ? "open" : ""}`}>
-        <div className="flex items-center justify-between pb-1">
-          <Link to="/" className="hf-brand">
-            <BrandMark />
-            <span>HireFlow AI</span>
-          </Link>
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(false)}
-            className="hf-icon-btn h-8 w-8 lg:hidden"
-            aria-label="Close Navigation"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+        <Link to="/dashboard" className="hf-brand">
+          HireFlow AI
+        </Link>
 
-        <nav className="hf-nav" aria-label="Main navigation">
-          {operationsNav.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                onClick={() => setSidebarOpen(false)}
-                className={({ isActive }) => (isActive ? "active" : "")}
-              >
-                <Icon className="h-[17px] w-[17px] shrink-0 opacity-80" />
-                <span className="flex-1 truncate">{item.label}</span>
-              </NavLink>
-            );
-          })}
+        <nav className="hf-nav">
+          {operationsNav.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
 
           <div className="hf-nav-gap" />
 
-          {governanceNav.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setSidebarOpen(false)}
-                className={({ isActive }) => (isActive ? "active" : "")}
-              >
-                <Icon className="h-[17px] w-[17px] shrink-0 opacity-80" />
-                <span className="flex-1 truncate">{item.label}</span>
-                {item.badge !== undefined && <span className="hf-count">{item.badge}</span>}
-              </NavLink>
-            );
-          })}
+          {governanceNav.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              <span className="truncate">{item.label}</span>
+              {item.badge ? <span className="hf-count">{item.badge}</span> : null}
+            </NavLink>
+          ))}
         </nav>
 
         <div className="hf-side-foot">
           {quota && (
-            <div className="mb-2.5 rounded-xl border border-[var(--line)] bg-[var(--field)] px-3 py-2.5">
-              <div className="flex items-center justify-between text-[11px] font-medium text-[var(--muted)]">
-                <span>Monthly AI Quota</span>
-                <span className="font-mono text-[var(--ink-2)]">{quota.usage_percent}%</span>
+            <div className="rounded-[var(--r-field)] border border-[var(--border)] px-2.5 py-2 text-[11px]">
+              <div className="flex items-center justify-between text-[var(--muted)]">
+                <span>Quota</span>
+                <span className="font-mono font-semibold text-[var(--fg)]">
+                  {quota.usage_percent.toFixed(1)}%
+                </span>
               </div>
-              <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[var(--panel)]">
+              <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full border border-[var(--border)]">
                 <div
-                  className="h-full rounded-full transition-all"
-                  style={{
-                    width: `${Math.min(100, Math.max(2, quota.usage_percent))}%`,
-                    background:
-                      quota.usage_percent > 85
-                        ? "var(--block)"
-                        : quota.usage_percent > 60
-                          ? "var(--esc)"
-                          : "var(--pass)",
-                  }}
+                  className="h-full bg-[var(--fg)]"
+                  style={{ width: `${Math.min(100, Math.max(2, quota.usage_percent))}%` }}
                 />
-              </div>
-              <div className="mt-1 font-mono text-[10.5px] text-[var(--muted)]">
-                {quota.tokens_used_this_month.toLocaleString()} / {quota.monthly_token_limit.toLocaleString()} tok
               </div>
             </div>
           )}
 
           <div className="hf-who">
-            <strong>{session.userName || session.tenantName || "HireFlow Workspace"}</strong>
+            <strong>{session.userName}</strong>
             <span>
-              {session.tenantName}, {session.role}
+              {session.tenantName} / {session.role}
             </span>
           </div>
 
-          <div className="hf-icon-row">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="hf-icon-btn"
-              aria-label="Toggle theme"
-              title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          <div className="grid grid-cols-2 gap-1.5">
+            <button type="button" onClick={toggleTheme} className="hf-btn hf-btn-sm">
+              {theme === "dark" ? "Light" : "Dark"}
             </button>
-            <Link
-              to="/dashboard/assistant"
-              className="hf-icon-btn"
-              aria-label="HR Assistant"
-              title="HR Assistant"
-            >
-              <MessageSquareText className="h-4 w-4" />
-            </Link>
-            <a
-              href="http://127.0.0.1:8000/docs"
-              target="_blank"
-              rel="noreferrer"
-              className="hf-icon-btn"
-              aria-label="API Docs"
-              title="FastAPI Docs"
-            >
-              <FileCode2 className="h-4 w-4" />
-            </a>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="hf-icon-btn"
-              aria-label="Sign Out"
-              title="Sign Out"
-            >
-              <LogOut className="h-4 w-4" />
+            <button type="button" onClick={handleSignOut} className="hf-btn hf-btn-sm">
+              Sign Out
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Floating Main Panel */}
       <div className="hf-main">
-        <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--line)] bg-[var(--panel)]/95 px-6 py-2.5 backdrop-blur-md">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="hf-chip hf-chip-plain">
-              <Building2 className="h-3.5 w-3.5 text-[var(--muted)]" />
-              Tenant: <strong className="font-semibold text-[var(--ink)]">{session.tenantName}</strong>
-            </span>
-            <span className="hf-chip hf-chip-plain hidden sm:inline-flex">
-              <Users className="h-3.5 w-3.5 text-[var(--muted)]" />
-              Role: <code className="font-mono font-semibold text-[var(--ink)]">{session.role}</code>
-            </span>
+        <header className="flex flex-none items-center justify-between gap-2 border-b border-[var(--border)] px-5 py-2 text-xs">
+          <div className="flex items-center gap-2 font-mono text-[var(--muted)]">
+            <strong className="text-[var(--fg)]">{session.tenantName}</strong>
+            <span>/</span>
+            <span>{session.role}</span>
           </div>
 
           <div className="flex items-center gap-2">
             {pendingApprovals > 0 && (
               <Link to="/dashboard/monitor" className="hf-chip hf-chip-escalate no-underline">
-                <CheckCircle2 className="h-3.5 w-3.5" />
                 {pendingApprovals} Pending HITL
               </Link>
             )}
@@ -292,51 +173,30 @@ export const DashboardLayout: React.FC = () => {
               }`}
             >
               {backendStatus.online && session.isLiveAuthenticated
-                ? "HireFlow AI Live"
+                ? "Live"
                 : backendStatus.online
-                  ? "Sign In Required"
-                  : "Backend Offline"}
+                  ? "Sign In"
+                  : "Offline"}
             </span>
-            {session.tenantSlug && (
-              <span className="hf-chip hf-chip-plain hidden font-mono md:inline-flex">
-                <ShieldCheck className="h-3.5 w-3.5 text-[var(--pass)]" />
-                {session.tenantSlug}
-              </span>
-            )}
           </div>
-        </div>
+        </header>
 
-        <main className="hf-page animate-fade-in">
+        <main className="hf-page">
           {lastActionError && (
-            <div className="mb-5 flex items-center justify-between rounded-xl border border-[color:var(--block-soft)] bg-[var(--block-soft)] px-4 py-3 text-xs font-medium text-[var(--block)]">
+            <div className="mb-3 flex flex-none items-center justify-between rounded-[var(--r-field)] border border-[var(--fg)] px-3 py-2 text-xs text-[var(--fg)]">
               <span>{lastActionError}</span>
-              <button
-                type="button"
-                onClick={clearLastActionError}
-                className="ml-4 font-semibold underline"
-              >
+              <button type="button" onClick={clearLastActionError} className="font-semibold underline">
                 Dismiss
               </button>
             </div>
           )}
 
           {!session.isLiveAuthenticated ? (
-            <div className="hf-card py-12 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--field)] text-[var(--ink)]">
-                <Bot className="h-6 w-6" />
-              </div>
-              <h2 className="mt-4 text-xl font-bold tracking-tight text-[var(--ink)]">
-                Sign in to access your HireFlow AI HR Workspace
-              </h2>
-              <p className="mx-auto mt-2 max-w-md text-sm text-[var(--muted)]">
-                Authenticate with an organization account so all HR workflows, candidates,
-                knowledge documents, and audit logs sync securely with PostgreSQL RLS.
-              </p>
-              <div className="mt-5 flex justify-center">
-                <Link to="/signin" className="hf-btn hf-btn-primary">
-                  Go to Sign In &rarr;
-                </Link>
-              </div>
+            <div className="hf-card my-auto flex flex-col items-center gap-3 py-10 text-center">
+              <h2 className="text-lg font-bold text-[var(--fg)]">Sign in required</h2>
+              <Link to="/signin" className="hf-btn hf-btn-primary">
+                Go to Sign In
+              </Link>
             </div>
           ) : (
             <Outlet />

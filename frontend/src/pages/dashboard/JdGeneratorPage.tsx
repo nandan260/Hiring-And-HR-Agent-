@@ -1,19 +1,17 @@
 import React, { useState } from "react";
-import { Check, Copy, FileText, Sparkles } from "lucide-react";
-import { useApp } from "../../context/AppContext";
 import { ExecutionResultPanel } from "../../components/common/ExecutionResultPanel";
+import { useApp } from "../../context/AppContext";
 import type { UnifiedExecuteResponse } from "../../types/agent";
 
 export const JdGeneratorPage: React.FC = () => {
   const { executeWorkflow } = useApp();
-
   const [jobTitle, setJobTitle] = useState("Senior Backend Engineer");
   const [department, setDepartment] = useState("Platform Engineering");
-  const [requiredSkills, setRequiredSkills] = useState("Python, FastAPI, PostgreSQL, LangGraph");
-  const [preferredSkills, setPreferredSkills] = useState("Docker, Redis, Kubernetes");
-  const [extraContext, setExtraContext] = useState(
-    "Include inclusive language check, clear leveling expectations, and hybrid flexibility."
+  const [requiredSkills, setRequiredSkills] = useState(
+    "Python, FastAPI, PostgreSQL, Docker, REST APIs"
   );
+  const [preferredSkills, setPreferredSkills] = useState("LangGraph, Redis, Kubernetes");
+  const [extraContext, setExtraContext] = useState("");
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<UnifiedExecuteResponse | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -23,19 +21,11 @@ export const JdGeneratorPage: React.FC = () => {
     e.preventDefault();
     setRunning(true);
     setErrorMsg(null);
-    setResult(null);
-
-    const reqList = requiredSkills
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const prefList = preferredSkills
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const reqList = requiredSkills.split(",").map((s) => s.trim()).filter(Boolean);
+    const prefList = preferredSkills.split(",").map((s) => s.trim()).filter(Boolean);
 
     const res = await executeWorkflow({
-      prompt: `Draft a structured job description for ${jobTitle} in ${department} requiring ${reqList.join(", ")}. ${extraContext}`,
+      prompt: `Generate an inclusive job description for ${jobTitle} in ${department} requiring ${reqList.join(", ")}. ${extraContext}`.trim(),
       workflow_hint: "jd-generator",
       structured_input: {
         job_title: jobTitle,
@@ -45,40 +35,45 @@ export const JdGeneratorPage: React.FC = () => {
       },
     });
     setRunning(false);
-    if (!res.ok) {
-      setErrorMsg(res.error || "Job description generation failed");
-    } else if (res.data) {
+    if (res.ok && res.data) {
       setResult(res.data);
+    } else {
+      setErrorMsg(res.error || "JD generation failed.");
     }
   };
 
-  const out = result?.structured_output || {};
-  const markdownDoc =
-    typeof out.formatted_job_description_markdown === "string"
-      ? out.formatted_job_description_markdown
-      : "";
-  const inclusiveScore = out.inclusive_language_score;
-  const findings = (out.inclusive_language_findings as Record<string, string>[]) || [];
+  const jdMarkdown =
+    (result?.structured_output?.formatted_job_description_markdown as string) || "";
+  const inclusiveScore = result?.structured_output?.inclusive_language_score as number | undefined;
+  const findings =
+    (result?.structured_output?.inclusive_language_findings as Array<{
+      flagged_term: string;
+      suggestion: string;
+    }>) || [];
 
-  const copyMarkdown = () => {
-    if (!markdownDoc) return;
-    navigator.clipboard?.writeText(markdownDoc);
+  const copyJd = () => {
+    if (!jdMarkdown) return;
+    navigator.clipboard?.writeText(jdMarkdown);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="hf-h1">Job Description Generator</h1>
-        <p className="hf-lede">
-          Generate structured, role-specific job descriptions grounded in your tenant leveling
-          rubric with automated inclusive language linting.
-        </p>
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <div className="hf-page-head">
+        <h1 className="hf-h1">JD Generator</h1>
+        {jdMarkdown && (
+          <button type="button" onClick={copyJd} className="hf-btn hf-btn-sm">
+            {copied ? "Copied" : "Copy Markdown"}
+          </button>
+        )}
       </div>
 
-      <form onSubmit={handleGenerate} className="hf-card space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid min-h-0 flex-1 grid-cols-12 gap-3">
+        <form
+          onSubmit={handleGenerate}
+          className="hf-card col-span-12 flex min-h-0 flex-col gap-2.5 overflow-y-auto lg:col-span-5"
+        >
           <div className="hf-field">
             <label>Job Title</label>
             <input
@@ -89,27 +84,29 @@ export const JdGeneratorPage: React.FC = () => {
               className="hf-input"
             />
           </div>
+
           <div className="hf-field">
             <label>Department</label>
             <input
               type="text"
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
+              required
               className="hf-input"
             />
           </div>
-        </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
           <div className="hf-field">
-            <label>Required Skills (comma-separated)</label>
+            <label>Required Skills</label>
             <input
               type="text"
               value={requiredSkills}
               onChange={(e) => setRequiredSkills(e.target.value)}
+              required
               className="hf-input"
             />
           </div>
+
           <div className="hf-field">
             <label>Preferred Skills</label>
             <input
@@ -119,64 +116,59 @@ export const JdGeneratorPage: React.FC = () => {
               className="hf-input"
             />
           </div>
-        </div>
 
-        <div className="hf-field">
-          <label>Additional Context &amp; Notes</label>
-          <textarea
-            rows={2}
-            value={extraContext}
-            onChange={(e) => setExtraContext(e.target.value)}
-            className="hf-input"
-          />
-        </div>
-
-        <div className="pt-1">
-          <button type="submit" disabled={running} className="hf-btn hf-btn-primary">
-            <Sparkles className="h-4 w-4" />
-            {running ? "Generating Job Description..." : "Generate Job Description"}
-          </button>
-        </div>
-      </form>
-
-      {markdownDoc && (
-        <div className="hf-card">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] pb-3">
-            <div className="flex items-center gap-2.5">
-              <FileText className="h-4 w-4 text-[var(--ink)]" />
-              <h2 className="hf-h2 mb-0">Formatted Job Description</h2>
-              {inclusiveScore !== undefined && (
-                <span className="hf-chip hf-chip-pass font-mono">
-                  Inclusive Score: {String(inclusiveScore)}/100
-                </span>
-              )}
-            </div>
-            <button type="button" onClick={copyMarkdown} className="hf-btn hf-btn-sm">
-              {copied ? (
-                <Check className="h-3.5 w-3.5 text-[var(--pass)]" />
-              ) : (
-                <Copy className="h-3.5 w-3.5" />
-              )}
-              {copied ? "Copied" : "Copy Markdown"}
-            </button>
+          <div className="hf-field flex min-h-0 flex-1 flex-col">
+            <label>Notes</label>
+            <textarea
+              rows={3}
+              value={extraContext}
+              onChange={(e) => setExtraContext(e.target.value)}
+              placeholder="Location, team context, expectations..."
+              className="hf-input min-h-[72px] flex-1 resize-none"
+            />
           </div>
 
-          {findings.length > 0 && (
-            <div className="mt-3 rounded-xl border border-[color:var(--esc-soft)] bg-[var(--esc-soft)] p-3 text-xs text-[var(--ink)]">
-              <strong className="text-[var(--esc)]">Inclusive Linter Notes:</strong>{" "}
-              {findings
-                .map((f) => `"${f.flagged_phrase}" -> "${f.suggested_replacement}"`)
-                .join(" | ")}
-            </div>
+          <button type="submit" disabled={running} className="hf-btn hf-btn-primary w-full">
+            {running ? "Generating Job Description..." : "Generate Job Description"}
+          </button>
+        </form>
+
+        <div className="hf-card col-span-12 flex min-h-0 flex-col gap-3 overflow-y-auto lg:col-span-7">
+          {jdMarkdown ? (
+            <>
+              <div className="flex items-center justify-between">
+                <h2 className="hf-h2">Draft</h2>
+                {typeof inclusiveScore === "number" && (
+                  <span className="hf-chip hf-chip-pass font-mono">
+                    Bias Score {inclusiveScore}/100
+                  </span>
+                )}
+              </div>
+
+              {findings.length > 0 && (
+                <div className="hf-subcard space-y-1 text-xs">
+                  {findings.map((f, i) => (
+                    <div key={i}>
+                      <span className="font-mono text-[var(--fg)]">{f.flagged_term}</span> &rarr;{" "}
+                      <span className="text-[var(--muted)]">{f.suggestion}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <pre className="whitespace-pre-wrap rounded-[var(--r-field)] border border-[var(--border)] bg-[var(--surface)] p-3 font-sans text-xs leading-relaxed text-[var(--fg)]">
+                {jdMarkdown}
+              </pre>
+            </>
+          ) : null}
+
+          {result || errorMsg ? (
+            <ExecutionResultPanel result={result} errorMsg={errorMsg} title="JD Generation" />
+          ) : (
+            <div className="hf-empty my-auto">Generate a job description to review draft output.</div>
           )}
-
-          <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-[var(--line)] bg-[var(--field)] p-4 font-sans text-sm leading-relaxed text-[var(--ink)]">
-            {markdownDoc}
-          </pre>
         </div>
-      )}
-
-      <ExecutionResultPanel result={result} errorMsg={errorMsg} />
+      </div>
     </div>
   );
 };

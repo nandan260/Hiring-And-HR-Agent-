@@ -1,41 +1,37 @@
-import React, { useState } from "react";
-import { Award, Search, Users } from "lucide-react";
-import { useApp } from "../../context/AppContext";
+import React, { useMemo, useState } from "react";
+import { Badge } from "../../components/common/Badge";
 import { ExecutionResultPanel } from "../../components/common/ExecutionResultPanel";
+import { useApp } from "../../context/AppContext";
 import type { UnifiedExecuteResponse } from "../../types/agent";
 
 export const CandidatesPage: React.FC = () => {
   const { candidates, executeWorkflow } = useApp();
   const [search, setSearch] = useState("");
   const [roleTitle, setRoleTitle] = useState("Senior Backend Engineer");
-  const [requiredSkills, setRequiredSkills] = useState("Python, FastAPI, PostgreSQL, LangGraph");
+  const [requiredSkills, setRequiredSkills] = useState("Python, FastAPI, PostgreSQL");
   const [topN, setTopN] = useState(3);
   const [running, setRunning] = useState(false);
   const [shortlistRes, setShortlistRes] = useState<UnifiedExecuteResponse | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const filtered = candidates.filter((c) => {
+  const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      c.full_name.toLowerCase().includes(q) ||
-      c.target_role.toLowerCase().includes(q) ||
-      c.skills.some((s) => s.toLowerCase().includes(q))
+    if (!q) return candidates;
+    return candidates.filter(
+      (c) =>
+        c.full_name.toLowerCase().includes(q) ||
+        c.target_role.toLowerCase().includes(q) ||
+        c.skills.some((s) => s.toLowerCase().includes(q))
     );
-  });
+  }, [candidates, search]);
 
-  const handleRunShortlist = async (e: React.FormEvent) => {
+  const handleShortlist = async (e: React.FormEvent) => {
     e.preventDefault();
     setRunning(true);
     setErrorMsg(null);
-    setShortlistRes(null);
-    const reqSkills = requiredSkills
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
+    const reqSkills = requiredSkills.split(",").map((s) => s.trim()).filter(Boolean);
     const res = await executeWorkflow({
-      prompt: `Compare and shortlist top ${topN} candidates for ${roleTitle} with ${reqSkills.join(", ")}.`,
+      prompt: `Shortlist top ${topN} candidates for ${roleTitle} requiring ${reqSkills.join(", ")}`,
       workflow_hint: "candidate-shortlisting",
       structured_input: {
         job_title: roleTitle,
@@ -44,177 +40,133 @@ export const CandidatesPage: React.FC = () => {
       },
     });
     setRunning(false);
-    if (!res.ok) {
-      setErrorMsg(res.error || "Shortlisting failed");
-    } else if (res.data) {
+    if (res.ok && res.data) {
       setShortlistRes(res.data);
+    } else {
+      setErrorMsg(res.error || "Shortlisting failed.");
     }
   };
 
   const matrix =
-    (shortlistRes?.structured_output?.comparison_matrix as Record<string, unknown>[]) || [];
+    (shortlistRes?.structured_output?.comparison_matrix as Array<{
+      candidate_name: string;
+      status: string;
+      years_experience: number;
+      match_score: number;
+      matched_skills?: string[];
+      missing_skills?: string[];
+    }>) || [];
 
   return (
-    <div className="space-y-6">
-      <div className="hf-page-head mb-0">
-        <div>
-          <h1 className="hf-h1">Candidates &amp; Shortlisting</h1>
-          <p className="hf-lede">
-            Browse tenant-isolated candidate profiles from PostgreSQL and generate merit-based
-            shortlist comparisons.
-          </p>
-        </div>
-        <div className="relative w-full sm:w-64">
-          <Search className="pointer-events-none absolute left-3.5 top-2.5 h-4 w-4 text-[var(--muted)]" />
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <div className="hf-page-head">
+        <h1 className="hf-h1">Candidates ({filtered.length})</h1>
+        <form onSubmit={handleShortlist} className="flex flex-wrap items-center gap-2">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filter candidates or skills..."
-            className="hf-input rounded-full pl-9"
+            placeholder="Filter pool..."
+            className="hf-input w-40"
           />
-        </div>
+          <input
+            type="text"
+            value={roleTitle}
+            onChange={(e) => setRoleTitle(e.target.value)}
+            placeholder="Role"
+            className="hf-input w-44"
+          />
+          <input
+            type="text"
+            value={requiredSkills}
+            onChange={(e) => setRequiredSkills(e.target.value)}
+            placeholder="Skills"
+            className="hf-input w-44"
+          />
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={topN}
+            onChange={(e) => setTopN(Number(e.target.value))}
+            className="hf-input w-16"
+          />
+          <button type="submit" disabled={running} className="hf-btn hf-btn-primary">
+            {running ? "Ranking..." : "Shortlist"}
+          </button>
+        </form>
       </div>
 
-      {/* Candidate Directory Table */}
-      <div className="hf-card">
-        <div className="mb-4 flex items-center gap-2">
-          <Users className="h-4 w-4 text-[var(--muted)]" />
-          <h2 className="hf-h2 mb-0">Candidate Directory ({filtered.length})</h2>
+      <div className="grid min-h-0 flex-1 grid-cols-12 gap-3">
+        <div className="hf-card col-span-12 flex min-h-0 flex-col lg:col-span-7">
+          {filtered.length === 0 ? (
+            <div className="hf-empty my-auto">No matching candidates.</div>
+          ) : (
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <table className="hf-rows">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Exp</th>
+                    <th>Status</th>
+                    <th className="num">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((c) => (
+                    <tr key={c.id}>
+                      <td className="font-medium text-[var(--fg)]">{c.full_name}</td>
+                      <td className="text-[var(--muted)]">{c.target_role}</td>
+                      <td className="font-mono text-xs text-[var(--fg)]">{c.years_experience}y</td>
+                      <td>
+                        <Badge variant={c.status === "shortlisted" ? "emerald" : "slate"}>
+                          {c.status}
+                        </Badge>
+                      </td>
+                      <td className="num font-semibold text-[var(--fg)]">
+                        {c.match_score != null ? `${Math.round(c.match_score)}%` : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="hf-empty">
-            <strong>No matching candidates</strong>
-            No matching candidates found in this tenant workspace.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="hf-rows">
+        <div className="hf-card col-span-12 flex min-h-0 flex-col gap-3 overflow-y-auto lg:col-span-5">
+          <h2 className="hf-h2 flex-none">Shortlist Matrix</h2>
+          {matrix.length > 0 && (
+            <table className="hf-rows flex-none">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Target Role</th>
-                  <th>Exp</th>
-                  <th>Extracted Skills</th>
-                  <th className="num">Score</th>
-                  <th>Status</th>
+                  <th>Candidate</th>
+                  <th className="num">Match</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((c) => (
-                  <tr key={c.id}>
-                    <td className="font-semibold text-[var(--ink)]">{c.full_name}</td>
-                    <td>{c.target_role}</td>
-                    <td className="font-mono text-xs">{c.years_experience}y</td>
+                {matrix.map((row, idx) => (
+                  <tr key={idx}>
                     <td>
-                      <div className="flex flex-wrap gap-1">
-                        {c.skills.slice(0, 6).map((s) => (
-                          <span key={s} className="hf-chip hf-chip-plain">
-                            {s}
-                          </span>
-                        ))}
+                      <div className="font-medium text-[var(--fg)]">{row.candidate_name}</div>
+                      <div className="text-[11px] text-[var(--muted)]">
+                        {row.matched_skills?.join(", ")}
                       </div>
                     </td>
-                    <td className="num font-mono">
-                      {c.match_score !== null ? `${c.match_score}%` : "Unscored"}
-                    </td>
-                    <td>
-                      <span
-                        className={`hf-chip ${
-                          c.status === "shortlisted" || c.status === "hired"
-                            ? "hf-chip-pass"
-                            : c.status === "rejected"
-                              ? "hf-chip-block"
-                              : "hf-chip-plain"
-                        }`}
-                      >
-                        {c.status}
-                      </span>
-                    </td>
+                    <td className="num font-bold text-[var(--fg)]">{row.match_score}%</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        )}
+          )}
+          {shortlistRes || errorMsg ? (
+            <ExecutionResultPanel result={shortlistRes} errorMsg={errorMsg} title="Shortlisting" />
+          ) : (
+            <div className="hf-empty my-auto">Run Shortlist to rank candidates.</div>
+          )}
+        </div>
       </div>
-
-      {/* Candidate Shortlisting Runner */}
-      <form onSubmit={handleRunShortlist} className="hf-card space-y-4">
-        <div className="flex items-center gap-2">
-          <Award className="h-4 w-4 text-[var(--pass)]" />
-          <h2 className="hf-h2 mb-0">Generate Merit Shortlist Comparison</h2>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="hf-field">
-            <label>Role Title</label>
-            <input
-              type="text"
-              required
-              value={roleTitle}
-              onChange={(e) => setRoleTitle(e.target.value)}
-              className="hf-input"
-            />
-          </div>
-          <div className="hf-field">
-            <label>Required Skills (comma-separated)</label>
-            <input
-              type="text"
-              required
-              value={requiredSkills}
-              onChange={(e) => setRequiredSkills(e.target.value)}
-              className="hf-input"
-            />
-          </div>
-          <div className="hf-field">
-            <label>Shortlist Size (Top N)</label>
-            <input
-              type="number"
-              min={1}
-              max={10}
-              value={topN}
-              onChange={(e) => setTopN(Number(e.target.value))}
-              className="hf-input"
-            />
-          </div>
-        </div>
-
-        <button type="submit" disabled={running} className="hf-btn hf-btn-primary">
-          {running ? "Ranking Candidates..." : "Run Candidate Shortlisting Workflow"}
-        </button>
-      </form>
-
-      {matrix.length > 0 && (
-        <div className="hf-card space-y-3">
-          <h3 className="hf-h2 mb-0">Ranked Shortlist Matrix</h3>
-          <div className="grid gap-3 md:grid-cols-3">
-            {matrix.map((row, idx) => (
-              <div key={idx} className="hf-subcard text-xs">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-[var(--ink)]">
-                    #{idx + 1} {String(row.candidate_label || "")}
-                  </span>
-                  <span className="hf-chip hf-chip-pass font-mono">
-                    {String(row.match_score ?? 0)}%
-                  </span>
-                </div>
-                <p className="mt-1.5 text-[var(--muted)]">
-                  Exp: {String(row.years_experience ?? 0)} yrs
-                </p>
-                {Array.isArray(row.missing_skills) && row.missing_skills.length > 0 && (
-                  <p className="mt-2 text-[var(--block)]">
-                    Missing: {(row.missing_skills as string[]).join(", ")}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <ExecutionResultPanel result={shortlistRes} errorMsg={errorMsg} />
     </div>
   );
 };

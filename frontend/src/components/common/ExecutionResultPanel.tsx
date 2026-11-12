@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronRight, Cpu, FileCheck, ShieldAlert, Sparkles } from "lucide-react";
 import type { UnifiedExecuteResponse } from "../../types/agent";
 
 export const ExecutionResultPanel: React.FC<{
@@ -13,16 +12,11 @@ export const ExecutionResultPanel: React.FC<{
 
   if (errorMsg) {
     return (
-      <div className="hf-claim contradicted mt-4">
+      <div className="hf-claim contradicted">
         <div className="bar" />
-        <div className="pr-2">
-          <div className="flex items-start gap-2.5 text-sm">
-            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--block)]" />
-            <div>
-              <div className="font-semibold text-[var(--ink)]">Execution Blocked / Error</div>
-              <p className="mt-1 text-xs leading-relaxed text-[var(--ink-2)]">{errorMsg}</p>
-            </div>
-          </div>
+        <div className="pr-2 text-xs">
+          <div className="font-semibold text-[var(--fg)]">Execution Blocked</div>
+          <p className="mt-1 text-[var(--muted)]">{errorMsg}</p>
         </div>
       </div>
     );
@@ -47,82 +41,42 @@ export const ExecutionResultPanel: React.FC<{
       : "supported";
 
   const totalTokens = result.input_tokens + result.output_tokens;
-  const completedSteps = result.trace_steps.length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="hf-verdict">
         <div>
           <div className="hf-score">
             {totalTokens > 0 ? totalTokens : `${result.latency_ms}ms`}
-            <small>
-              {totalTokens > 0 ? `${result.latency_ms}ms latency` : "execution timing"}
-            </small>
+            <small>{totalTokens > 0 ? `${result.latency_ms}ms` : "latency"}</small>
           </div>
         </div>
 
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="hf-chip hf-chip-plain">
-              <Sparkles className="h-3 w-3" />
-              {title || result.routed_workflow_name}
-            </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="hf-chip hf-chip-plain">{title || result.routed_workflow_name}</span>
             <span className={statusChipClass}>{result.execution_status}</span>
-            <span className="font-mono text-xs text-[var(--muted)]">
+            <span className="font-mono text-[11px] text-[var(--muted)]">
               {result.classifier_result}
             </span>
+            <span className="font-mono text-[11px] text-[var(--muted)]">{result.model_used}</span>
           </div>
 
-          <div className="mt-2.5 flex flex-wrap items-center gap-2 font-mono text-[11.5px] text-[var(--muted)]">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-[var(--muted)]">
             {result.intent_analysis?.risk_level && (
-              <span className="hf-chip hf-chip-plain">
-                risk:{result.intent_analysis.risk_level}
-              </span>
+              <span>risk:{result.intent_analysis.risk_level}</span>
             )}
-            <span className="inline-flex items-center gap-1 text-[var(--ink-2)]">
-              <Cpu className="h-3.5 w-3.5" />
-              {result.model_used}
-            </span>
             <span>
-              &bull; {result.input_tokens} in / {result.output_tokens} out tok
+              {result.input_tokens} in / {result.output_tokens} out
               {typeof result.tokens_saved === "number" && result.tokens_saved > 0
-                ? ` • ${result.tokens_saved} saved (${result.reduction_percent ?? 0}%)`
+                ? ` / ${result.tokens_saved} saved`
                 : ""}
             </span>
-          </div>
-
-          {(result.guardrail_flags?.length || result.optimization_methods_used?.length) ? (
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
-              {result.guardrail_flags?.map((flag) => (
-                <span key={flag} className="hf-chip hf-chip-escalate">
-                  guardrail: {flag}
-                </span>
-              ))}
-              {result.optimization_methods_used?.map((m) => (
-                <span key={m} className="hf-chip hf-chip-plain">
-                  {m}
-                </span>
-              ))}
-            </div>
-          ) : null}
-
-          <div className="hf-meter" aria-hidden="true">
-            <i
-              style={{
-                flexGrow: isDeclined ? 0 : Math.max(1, completedSteps),
-                background: isDeclined
-                  ? "var(--field-hover)"
-                  : isPaused
-                    ? "var(--esc)"
-                    : "var(--pass)",
-              }}
-            />
-            <i
-              style={{
-                flexGrow: isDeclined ? 1 : 0.15,
-                background: isDeclined ? "var(--block)" : "var(--field-hover)",
-              }}
-            />
+            {result.guardrail_flags?.map((flag) => (
+              <span key={flag} className="hf-chip hf-chip-escalate">
+                {flag}
+              </span>
+            ))}
           </div>
         </div>
       </div>
@@ -130,52 +84,41 @@ export const ExecutionResultPanel: React.FC<{
       <div className={`hf-claim ${claimStateClass}`}>
         <div className="bar" />
         <div className="min-w-0 pr-2">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+          <div className="flex items-center justify-between gap-2 text-xs">
+            <span className="font-semibold uppercase tracking-wider text-[var(--muted)]">
               Agent Output
             </span>
-            <span
-              className="text-xs font-semibold"
-              style={{
-                color: isDeclined
-                  ? "var(--block)"
-                  : isPaused
-                    ? "var(--esc)"
-                    : "var(--pass)",
-              }}
-            >
-              {isDeclined ? "blocked / refused" : isPaused ? "awaiting approval" : "completed"}
+            <span className="font-mono text-[11px] font-semibold text-[var(--fg)]">
+              {isDeclined ? "blocked" : isPaused ? "awaiting approval" : "completed"}
             </span>
           </div>
 
-          <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[var(--ink)]">
+          <div className="mt-1.5 whitespace-pre-wrap text-[13px] leading-relaxed text-[var(--fg)]">
             {result.final_response_text}
           </div>
 
           {result.citations.length > 0 && (
             <div className="hf-quote">
-              <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">
-                <FileCheck className="h-3.5 w-3.5 text-[var(--pass)]" />
-                Grounded Citations
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">
+                Citations
               </div>
-              <ul className="mt-1.5 space-y-1 text-xs text-[var(--ink-2)]">
+              <ul className="mt-1 space-y-0.5 text-xs text-[var(--fg)]">
                 {result.citations.map((cite, idx) => (
-                  <li key={idx}>&bull; {cite}</li>
+                  <li key={idx}>- {cite}</li>
                 ))}
               </ul>
             </div>
           )}
 
           {result.hitl_requests.length > 0 && (
-            <div className="mt-3 rounded-xl border border-dashed border-[var(--esc)] bg-[var(--esc-soft)] p-3 text-xs text-[var(--ink)]">
-              <div className="font-semibold text-[var(--esc)]">
-                Human-in-the-Loop Approval Queued ({result.hitl_requests.length})
+            <div className="mt-2.5 rounded-[var(--r-field)] border border-dashed border-[var(--border)] bg-[var(--surface)] p-2.5 text-xs text-[var(--fg)]">
+              <div className="font-semibold">
+                Approval Queued ({result.hitl_requests.length})
               </div>
-              <ul className="mt-1 space-y-1 text-[var(--ink-2)]">
+              <ul className="mt-1 space-y-0.5 text-[var(--muted)]">
                 {result.hitl_requests.map((h, i) => (
                   <li key={i}>
-                    &bull; <strong className="text-[var(--ink)]">{h.title}</strong> ({h.action_type}) &mdash; review in
-                    Agent Execution Monitor or operational tab.
+                    - <strong className="text-[var(--fg)]">{h.title}</strong> ({h.action_type})
                   </li>
                 ))}
               </ul>
@@ -183,27 +126,22 @@ export const ExecutionResultPanel: React.FC<{
           )}
 
           {result.trace_steps.length > 0 && (
-            <div className="mt-3.5 border-t border-[var(--line)] pt-2.5">
+            <div className="mt-2.5 border-t border-[var(--border)] pt-2">
               <button
                 type="button"
                 onClick={() => setTraceOpen((o) => !o)}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--ink-2)] hover:text-[var(--ink)]"
+                className="text-xs font-medium text-[var(--muted)] hover:text-[var(--fg)]"
               >
-                {traceOpen ? (
-                  <ChevronDown className="h-3.5 w-3.5" />
-                ) : (
-                  <ChevronRight className="h-3.5 w-3.5" />
-                )}
-                LangGraph Execution Trace ({result.trace_steps.length} nodes)
+                {traceOpen ? "Hide Trace" : `Show Trace (${result.trace_steps.length})`}
               </button>
               {traceOpen && (
-                <div className="mt-2.5 grid gap-1.5 sm:grid-cols-2">
+                <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
                   {result.trace_steps.map((step, i) => (
                     <div
                       key={`${step.step}-${i}`}
-                      className="flex items-center justify-between rounded-lg border border-[var(--line)] bg-[var(--field)] px-2.5 py-1.5 text-[11px]"
+                      className="flex items-center justify-between rounded-[var(--r-field)] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-[11px]"
                     >
-                      <span className="font-mono font-semibold text-[var(--ink)]">{step.step}</span>
+                      <span className="font-mono font-semibold text-[var(--fg)]">{step.step}</span>
                       <span className="truncate px-2 text-[var(--muted)]">{step.detail}</span>
                       <span className="font-mono text-[var(--muted)]">{step.duration_ms}ms</span>
                     </div>

@@ -1,165 +1,98 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  Briefcase,
-  CalendarClock,
-  FileSearch,
-  FileText,
-  ShieldCheck,
-  Users,
-} from "lucide-react";
+import { Badge } from "../../components/common/Badge";
 import { useApp } from "../../context/AppContext";
 
 export const RecruitmentPage: React.FC = () => {
   const { candidates, interviews, approvals, workspace } = useApp();
-
   const blindEnabled = workspace?.settings?.blind_screening_mode ?? false;
-  const recruitingApprovals = approvals.filter(
-    (a) =>
-      a.status === "pending" &&
-      (a.agent_slug === "candidate-shortlisting" || a.agent_slug === "interview-scheduling")
-  );
   const topCandidates = [...candidates]
     .sort((a, b) => (b.match_score ?? 0) - (a.match_score ?? 0))
-    .slice(0, 6);
+    .slice(0, 10);
 
   return (
-    <div className="space-y-6">
-      <div className="hf-page-head mb-0">
-        <div>
-          <h1 className="hf-h1">Recruitment Hub</h1>
-          <p className="hf-lede">
-            End-to-end hiring pipeline connecting job requisitions, blind resume screening,
-            merit shortlisting, and panel interviews.
-          </p>
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <div className="hf-page-head">
+        <div className="flex items-center gap-2.5">
+          <h1 className="hf-h1">Recruitment</h1>
+          <Badge variant={blindEnabled ? "emerald" : "slate"}>
+            {blindEnabled ? "Blind On" : "Standard"}
+          </Badge>
         </div>
-        <span className={`hf-chip ${blindEnabled ? "hf-chip-pass" : "hf-chip-plain"}`}>
-          <ShieldCheck className="h-3.5 w-3.5" />
-          Blind PII Screening: {blindEnabled ? "Active" : "Off"}
-        </span>
-      </div>
-
-      {/* Recruiting Summary Cards */}
-      <div className="hf-stats">
-        <div className="hf-stat border-b-0">
-          <div className="hf-stat-k">Tracked Candidates</div>
-          <div className="hf-stat-v">{candidates.length}</div>
-        </div>
-        <div className="hf-stat border-b-0">
-          <div className="hf-stat-k">Shortlisted / Scored &ge; 75%</div>
-          <div className="hf-stat-v text-[var(--pass)]">
-            {candidates.filter((c) => (c.match_score ?? 0) >= 75).length}
-          </div>
-        </div>
-        <div className="hf-stat border-b-0">
-          <div className="hf-stat-k">Active Interviews</div>
-          <div className="hf-stat-v">{interviews.length}</div>
-        </div>
-        <div className="hf-stat border-b-0 border-r-0">
-          <div className="hf-stat-k">Hiring Sign-Offs Pending</div>
-          <div className="hf-stat-v text-[var(--esc)]">{recruitingApprovals.length}</div>
-        </div>
-      </div>
-
-      {/* Stage Shortcuts */}
-      <div className="grid gap-3 md:grid-cols-4">
-        {[
-          {
-            title: "1. Draft Job Description",
-            desc: "Generate inclusive JDs with internal leveling citations.",
-            to: "/dashboard/jd-generator",
-            icon: FileText,
-          },
-          {
-            title: "2. Screen Resumes",
-            desc: "Upload PDF/DOCX resumes and score against rubrics.",
-            to: "/dashboard/screening",
-            icon: FileSearch,
-          },
-          {
-            title: "3. Compare & Shortlist",
-            desc: "Run merit ranking and surface skill gaps.",
-            to: "/dashboard/candidates",
-            icon: Users,
-          },
-          {
-            title: "4. Schedule Interviews",
-            desc: "Propose conflict-free panel slots & HITL invites.",
-            to: "/dashboard/interviews",
-            icon: CalendarClock,
-          },
-        ].map((step) => {
-          const Icon = step.icon;
-          return (
-            <Link
-              key={step.title}
-              to={step.to}
-              className="hf-card group flex flex-col justify-between no-underline transition hover:border-[var(--muted)]"
-            >
-              <div>
-                <Icon className="h-5 w-5 text-[var(--ink)]" />
-                <div className="mt-3 text-sm font-bold text-[var(--ink)]">{step.title}</div>
-                <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">{step.desc}</p>
-              </div>
-              <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[var(--ink-2)] group-hover:text-[var(--ink)]">
-                Open <ArrowRight className="h-3.5 w-3.5" />
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Top Ranked Candidates Snapshot */}
-      <div className="hf-card">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Briefcase className="h-4 w-4 text-[var(--muted)]" />
-            <h2 className="hf-h2 mb-0">Top Evaluated Candidates</h2>
-          </div>
+        <div className="flex flex-wrap gap-1.5">
+          <Link to="/dashboard/jd-generator" className="hf-btn hf-btn-sm">
+            JD Generator
+          </Link>
+          <Link to="/dashboard/screening" className="hf-btn hf-btn-sm">
+            Resume Screening
+          </Link>
           <Link to="/dashboard/candidates" className="hf-btn hf-btn-sm">
-            Full Candidate Pool &rarr;
+            Candidates
+          </Link>
+          <Link to="/dashboard/interviews" className="hf-btn hf-btn-sm">
+            Interviews
           </Link>
         </div>
+      </div>
 
-        {topCandidates.length === 0 ? (
-          <div className="hf-empty">
-            <strong>No candidates stored yet</strong>
-            Upload or paste resumes in Resume Screening to populate this pool.
+      <div className="hf-stats">
+        <div className="hf-stat">
+          <div className="hf-stat-k">Candidates</div>
+          <div className="hf-stat-v">{candidates.length}</div>
+        </div>
+        <div className="hf-stat">
+          <div className="hf-stat-k">Shortlisted</div>
+          <div className="hf-stat-v">
+            {candidates.filter((c) => c.status === "shortlisted" || c.status === "interviewing").length}
           </div>
+        </div>
+        <div className="hf-stat">
+          <div className="hf-stat-k">Interviews</div>
+          <div className="hf-stat-v">{interviews.length}</div>
+        </div>
+        <div className="hf-stat">
+          <div className="hf-stat-k">Approvals</div>
+          <div className="hf-stat-v">{approvals.filter((a) => a.status === "pending").length}</div>
+        </div>
+      </div>
+
+      <div className="hf-card flex min-h-0 flex-1 flex-col">
+        <div className="mb-2 flex flex-none items-center justify-between">
+          <h2 className="hf-h2">Ranked Pool</h2>
+          <Link
+            to="/dashboard/candidates"
+            className="text-xs font-medium text-[var(--muted)] hover:text-[var(--fg)]"
+          >
+            All Candidates
+          </Link>
+        </div>
+        {topCandidates.length === 0 ? (
+          <div className="hf-empty my-auto">No candidates available.</div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <table className="hf-rows">
               <thead>
                 <tr>
                   <th>Candidate</th>
                   <th>Target Role</th>
-                  <th>Experience</th>
-                  <th>Skills</th>
-                  <th className="num">Match Score</th>
                   <th>Status</th>
+                  <th className="num">Match</th>
                 </tr>
               </thead>
               <tbody>
-                {topCandidates.map((c) => (
-                  <tr key={c.id}>
-                    <td className="font-semibold text-[var(--ink)]">{c.full_name}</td>
-                    <td>{c.target_role}</td>
-                    <td className="font-mono text-xs">{c.years_experience} yrs</td>
+                {topCandidates.map((cand) => (
+                  <tr key={cand.id}>
+                    <td className="font-medium text-[var(--fg)]">{cand.full_name}</td>
+                    <td className="text-[var(--muted)]">{cand.target_role}</td>
                     <td>
-                      <div className="flex flex-wrap gap-1">
-                        {c.skills.slice(0, 4).map((s) => (
-                          <span key={s} className="hf-chip hf-chip-plain">
-                            {s}
-                          </span>
-                        ))}
-                      </div>
+                      <Badge variant={cand.status === "shortlisted" ? "emerald" : "slate"}>
+                        {cand.status}
+                      </Badge>
                     </td>
-                    <td className="num font-mono">
-                      {c.match_score !== null ? `${c.match_score}%` : "—"}
-                    </td>
-                    <td>
-                      <span className="hf-chip hf-chip-plain">{c.status}</span>
+                    <td className="num font-semibold text-[var(--fg)]">
+                      {cand.match_score !== null && cand.match_score !== undefined
+                        ? `${Math.round(cand.match_score)}%`
+                        : "—"}
                     </td>
                   </tr>
                 ))}
