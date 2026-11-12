@@ -1,0 +1,21 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /sandbox
+
+RUN groupadd --gid 10001 sandbox && \
+    useradd --uid 10001 --gid sandbox --no-create-home --shell /usr/sbin/nologin sandbox
+
+RUN pip install pypdf>=5.1.0 python-docx>=1.1.0 pydantic>=2.10.0
+
+COPY app/runtime/sandbox_worker.py /sandbox/sandbox_worker.py
+RUN mkdir -p /sandbox/workspace /tmp/sandbox && \
+    chown -R sandbox:sandbox /sandbox /tmp/sandbox && \
+    chmod 555 /sandbox/sandbox_worker.py
+
+USER 10001:10001
+
+ENTRYPOINT ["python", "-I", "/sandbox/sandbox_worker.py"]

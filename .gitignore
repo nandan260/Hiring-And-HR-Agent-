@@ -1,0 +1,70 @@
+# Python / Backend environments & build artifacts
+backend/.venv/
+.venv/
+venv/
+env/
+**/__pycache__/
+*.py[cod]
+*.pyo
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+.coverage
+htmlcov/
+
+# Environment variables, API keys & secrets
+.env
+.env.*
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+frontend/.env.local
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+*.jwk
+*.secret
+*credentials*.json
+backend/.dev_fernet.key
+
+# Database files & tenant runtime storage (sensitive customer data / resumes)
+backend/.pgdata/
+.pgdata/
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+backend/storage/
+backend/uploads/
+storage/
+uploads/
+resumes/
+customer_data/
+private_data/
+
+# Frontend dependencies & build outputs
+frontend/node_modules/
+node_modules/
+frontend/dist/
+dist/
+.vite/
+
+# Temporary files, logs & exports
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+tmp/
+.tmp/
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: rent_agent_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_dev_password
+      POSTGRES_DB: rent_an_agent
+    ports:
+      - "5432:5432"
+    volumes:
+      - rent_agent_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d rent_an_agent"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: rent_agent_backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres_dev_password@postgres:5432/rent_an_agent
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-replace-me-with-32-plus-char-prod-secret-key}
+      CREDENTIALS_ENCRYPTION_KEY: ${CREDENTIALS_ENCRYPTION_KEY:-}
+      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+      AUTO_SEED_CATALOG: "true"
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "alembic upgrade head && python -m app.db.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+volumes:
+  rent_agent_pgdata:
